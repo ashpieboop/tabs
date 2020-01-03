@@ -1,12 +1,40 @@
 {
-  "name": "browser-views",
-  "version": "1.0.0",
+  "name": "tabs",
+  "version": "0.0.1",
+  "description": "Persistent and separate browser tabs in one window",
+  "author": {
+    "name": "Alice Gaudon",
+    "email": "alice@gaudon.pro"
+  },
+  "homepage": "https://gitlab.com/ArisuOngaku/tabs",
+  "license": "MIT",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --dev"
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build-arch": "electron-builder --linux dir",
+    "pack": "electron-builder --dir",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "electron": "^5.0.1"
+    "electron": "^6.0.10",
+    "electron-builder": "^21.2.0"
+  },
+  "build": {
+    "appId": "tabs",
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "executableName": "tabs",
+      "category": "Utility",
+      "desktop": {
+        "StartupWMClass": "Tabs",
+        "MimeType": "x-scheme-handler/tabs"
+      }
+    },
+    "electronDist": "/usr/lib/electron",
+    "electronVersion": "6.0.10"
   }
 }

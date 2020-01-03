@@ -2,7 +2,10 @@ const {
     app,
     BrowserWindow,
     ipcMain,
+    Tray,
+    Menu,
 } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const Config = require('./Config');
 
@@ -10,12 +13,36 @@ const resourcesDir = path.resolve(__dirname, '../resources');
 
 const config = new Config();
 
+const devMode = process.argv.length > 2 && process.argv[2] === '--dev';
+
 let selectedService = 0;
 
+let tray;
 let window;
 let addServiceWindow;
 
+function toggleMainWindow() {
+    if (window != null) {
+        if (!window.isFocused()) {
+            window.show();
+        } else {
+            window.hide();
+        }
+    }
+}
+
 function createWindow() {
+    // System tray
+    tray = new Tray(path.resolve(resourcesDir, 'logo.png'));
+    tray.setToolTip('Tabs');
+    tray.setContextMenu(Menu.buildFromTemplate([
+        {label: 'Tabs', enabled: false},
+        {label: 'Open Tabs', click: () => window.show()},
+        {type: 'separator'},
+        {label: 'Quit', role: 'quit'}
+    ]));
+    tray.on('click', () => toggleMainWindow());
+
     // Create the browser window.
     window = new BrowserWindow({
         webPreferences: {
@@ -30,7 +57,7 @@ function createWindow() {
         window = null;
     });
 
-    if (process.argv.length > 2 && process.argv[2] === '--dev') {
+    if (devMode) {
         window.webContents.openDevTools({
             mode: 'right'
         });
@@ -59,6 +86,11 @@ function createWindow() {
     ipcMain.on('openAddServiceWindow', () => {
         if (!addServiceWindow) {
             addServiceWindow = new BrowserWindow({
+                webPreferences: {
+                    nodeIntegration: true,
+                    enableRemoteModule: true,
+                    webviewTag: true,
+                },
                 parent: window,
                 modal: true,
                 autoHideMenuBar: true,
@@ -66,6 +98,11 @@ function createWindow() {
             addServiceWindow.on('close', () => {
                 addServiceWindow = null;
             });
+            if (devMode) {
+                addServiceWindow.webContents.openDevTools({
+                    mode: 'right'
+                });
+            }
             addServiceWindow.loadFile(path.resolve(resourcesDir, 'add-service.html'))
                 .catch(console.error);
         }
