@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Persistent and separate browser tabs in one window",
   "author": {
     "name": "Alice Gaudon",
@@ -8,7 +8,8 @@
   },
   "homepage": "https://gitlab.com/ArisuOngaku/tabs",
   "license": "MIT",
-  "main": "src/main.js",
+  "main": "tabs.js",
+  "type": "module",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -16,6 +17,11 @@
     "build-arch": "electron-builder --linux dir",
     "pack": "electron-builder --dir",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ejs": "^3.0.1",
+    "esm": "^3.2.25",
+    "single-instance": "^0.0.1"
   },
   "devDependencies": {
     "electron": "^6.0.10",

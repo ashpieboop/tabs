@@ -35,4 +35,4 @@ Service.requiredProperties = {
     'useFavicon': true,
 };
 
-module.exports = Service;
+export default Service;

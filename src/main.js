@@ -1,15 +1,11 @@
-const {
-    app,
-    BrowserWindow,
-    ipcMain,
-    Tray,
-    Menu,
-} = require('electron');
-const fs = require('fs');
-const path = require('path');
-const Config = require('./Config');
+import fs from "fs";
+import path from "path";
+import {app, BrowserWindow, ipcMain, Menu, Tray} from "electron";
+
+import Config from "./Config";
 
 const resourcesDir = path.resolve(__dirname, '../resources');
+const iconPath = path.resolve(resourcesDir, 'logo.png');
 
 const config = new Config();
 
@@ -33,7 +29,7 @@ function toggleMainWindow() {
 
 function createWindow() {
     // System tray
-    tray = new Tray(path.resolve(resourcesDir, 'logo.png'));
+    tray = new Tray(iconPath);
     tray.setToolTip('Tabs');
     tray.setContextMenu(Menu.buildFromTemplate([
         {label: 'Tabs', enabled: false},
@@ -51,6 +47,7 @@ function createWindow() {
             webviewTag: true,
         },
         autoHideMenuBar: true,
+        icon: iconPath,
     });
     window.maximize();
     window.on('closed', () => {
@@ -103,6 +100,9 @@ function createWindow() {
                     mode: 'right'
                 });
             }
+            addServiceWindow.webContents.on('dom-ready', () => {
+                addServiceWindow.webContents.send('syncIcons', listIcons('brands'), listIcons('solid'));
+            });
             addServiceWindow.loadFile(path.resolve(resourcesDir, 'add-service.html'))
                 .catch(console.error);
         }
@@ -115,6 +115,13 @@ function sendServices() {
 
 function setActiveService(index) {
     selectedService = index;
+}
+
+function listIcons(set) {
+    const directory = path.resolve(resourcesDir, 'icons/' + set);
+    const icons = [];
+    fs.readdirSync(directory).forEach(i => icons.push(i.split('.svg')[0]));
+    return icons;
 }
 
 app.on('ready', createWindow);
