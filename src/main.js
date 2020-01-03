@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {app, BrowserWindow, ipcMain, Menu, Tray} from "electron";
+import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
 
 import Config from "./Config";
 
@@ -60,6 +60,15 @@ function createWindow() {
         });
     }
 
+    // Open external links in default OS browser
+    app.on('web-contents-created', (e, contents) => {
+        if (contents.getType() === 'webview') {
+            contents.on('new-window', (e, url) => {
+                e.preventDefault();
+                shell.openExternal(url);
+            });
+        }
+    });
 
     // Sync services with navigation
     window.webContents.on('dom-ready', sendServices);
