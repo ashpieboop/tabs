@@ -25,8 +25,10 @@ let serviceSettingsWindow;
 function toggleMainWindow() {
     if (window != null) {
         if (!window.isFocused()) {
+            console.log('Showing main window');
             window.show();
         } else {
+            console.log('Hiding main window');
             window.hide();
         }
     }
@@ -34,6 +36,7 @@ function toggleMainWindow() {
 
 function createWindow() {
     // System tray
+    console.log('Loading system Tray');
     tray = new Tray(iconPath);
     tray.setToolTip('Tabs');
     tray.setContextMenu(Menu.buildFromTemplate([
@@ -45,6 +48,7 @@ function createWindow() {
     tray.on('click', () => toggleMainWindow());
 
     // Create the browser window.
+    console.log('Creating main window');
     window = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
@@ -68,6 +72,7 @@ function createWindow() {
     // Open external links in default OS browser
     app.on('web-contents-created', (e, contents) => {
         if (contents.getType() === 'webview') {
+            console.log('Setting external links to open in default OS browser');
             contents.on('new-window', (e, url) => {
                 e.preventDefault();
                 shell.openExternal(url);
@@ -75,7 +80,7 @@ function createWindow() {
         }
     });
 
-    // Sync services with navigation
+    // Sync data
     window.webContents.on('dom-ready', sendData);
 
     // Load navigation view
@@ -89,6 +94,7 @@ function createWindow() {
 
     // Set a service's favicon
     ipcMain.on('setServiceFavicon', (event, index, favicon) => {
+        console.log('Setting service', index, 'favicon', favicon);
         config.services[index].favicon = favicon;
         config.save();
     });
@@ -96,6 +102,7 @@ function createWindow() {
     // Open add service window
     ipcMain.on('openServiceSettings', (e, serviceId) => {
         if (!serviceSettingsWindow) {
+            console.log('Opening service settings', serviceId);
             serviceSettingsWindow = new BrowserWindow({
                 webPreferences: {
                     nodeIntegration: true,
@@ -125,6 +132,7 @@ function createWindow() {
     });
 
     ipcMain.on('saveService', (e, id, data) => {
+        console.log('Saving service', id, data);
         const newService = new Service(data);
         if (typeof id === 'number') {
             config.services[id] = newService;
@@ -137,22 +145,28 @@ function createWindow() {
     });
 
     ipcMain.on('deleteService', (e, id) => {
+        console.log('Deleting service', id);
         delete config.services[id];
         config.save();
 
         window.webContents.send('deleteService', id);
     });
+
+    console.log('> App started');
 }
 
 function sendData() {
+    console.log('Syncing data');
     window.webContents.send('data', brandIcons, solidIcons, config.services, selectedService);
 }
 
 function setActiveService(index) {
+    console.log('Selected service is now', index);
     selectedService = index;
 }
 
 function listIcons(set) {
+    console.log('Loading icon set', set);
     const directory = path.resolve(resourcesDir, 'icons/' + set);
     const icons = [];
     const dir = set === 'brands' ? 'fab' : 'fas';
@@ -163,4 +177,5 @@ function listIcons(set) {
     return icons;
 }
 
+console.log('Starting app');
 app.on('ready', createWindow);

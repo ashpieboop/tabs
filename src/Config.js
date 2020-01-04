@@ -36,7 +36,9 @@ export default class Config {
     }
 
     save() {
+        console.log('Saving config');
         this.services = this.services.filter(s => s !== null);
         fs.writeFileSync(configFile, JSON.stringify(this, null, 4));
+        console.log('> Config saved');
     }
 }
