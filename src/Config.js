@@ -36,6 +36,7 @@ export default class Config {
     }
 
     save() {
+        this.services = this.services.filter(s => s !== null);
         fs.writeFileSync(configFile, JSON.stringify(this, null, 4));
     }
 }

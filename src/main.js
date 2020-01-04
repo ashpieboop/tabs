@@ -135,6 +135,13 @@ function createWindow() {
 
         window.webContents.send('updateService', id, newService);
     });
+
+    ipcMain.on('deleteService', (e, id) => {
+        delete config.services[id];
+        config.save();
+
+        window.webContents.send('deleteService', id);
+    });
 }
 
 function sendData() {

@@ -167,6 +167,7 @@
     const {
         Menu,
         MenuItem,
+        dialog,
     } = remote;
 
     const icons = [];
@@ -180,12 +181,26 @@
 
     // Service context menu
     const serviceContextMenu = new Menu();
-    const settingsItem = new MenuItem({
+    serviceContextMenu.append(new MenuItem({
         label: 'Edit', click: () => {
             ipcRenderer.send('openServiceSettings', serviceContextMenu.serviceId);
         }
-    });
-    serviceContextMenu.append(settingsItem);
+    }));
+    serviceContextMenu.append(new MenuItem({
+        label: 'Delete', click: () => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+                type: 'question',
+                title: 'Confirm',
+                message: 'Are you sure you want to delete this service?',
+                buttons: ['Cancel', 'Confirm'],
+                cancelId: 0,
+            }).then(result => {
+                if (result.response === 1) {
+                    ipcRenderer.send('deleteService', serviceContextMenu.serviceId);
+                }
+            }).catch(console.error);
+        }
+    }));
 
     function openServiceContextMenu(event, index) {
         event.preventDefault();
@@ -216,6 +231,10 @@
         for (let i = 0; i < services.length; i++) {
             createService(i);
         }
+
+        if (actualSelectedService < 0 || actualSelectedService >= services.length) {
+            actualSelectedService = 0;
+        }
         setActiveService(actualSelectedService);
     });
 
@@ -224,7 +243,7 @@
             services.push(data);
             createService(services.length - 1);
         } else {
-            let nav = document.querySelector('#service-selector');
+            const nav = document.querySelector('#service-selector');
 
             // Remove nav
             const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
@@ -244,6 +263,29 @@
                 setActiveService(id);
             }
         }
+    });
+
+    ipcRenderer.on('deleteService', (e, id) => {
+        const nav = document.querySelector('#service-selector');
+
+        // Remove nav
+        const navButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
+        if (navButton) {
+            nav.removeChild(navButton);
+        }
+
+        // Remove webview
+        if (services[id].view) {
+            const serviceContainer = document.querySelector('#services');
+            serviceContainer.removeChild(services[id].view);
+        }
+
+        if (parseInt(selectedService) === id) {
+            setActiveService(0);
+        }
+
+        delete services[id];
+        services = services.filter(s => s !== null);
     });
 
     function createService(index, nextNavButton) {
@@ -335,7 +377,7 @@
             }
 
             // Hide previous service
-            if (services[selectedService].view) {
+            if (services[selectedService] && services[selectedService].view) {
                 services[selectedService].view.classList.remove('active');
             }
 
