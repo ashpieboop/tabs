@@ -3,6 +3,7 @@ import path from "path";
 import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
 
 import Config from "./Config";
+import Service from "./Service";
 
 const resourcesDir = path.resolve(__dirname, '../resources');
 const iconPath = path.resolve(resourcesDir, 'logo.png');
@@ -11,11 +12,15 @@ const config = new Config();
 
 const devMode = process.argv.length > 2 && process.argv[2] === '--dev';
 
+// Load icons
+const brandIcons = listIcons('brands');
+const solidIcons = listIcons('solid');
+
 let selectedService = 0;
 
 let tray;
 let window;
-let addServiceWindow;
+let serviceSettingsWindow;
 
 function toggleMainWindow() {
     if (window != null) {
@@ -71,7 +76,7 @@ function createWindow() {
     });
 
     // Sync services with navigation
-    window.webContents.on('dom-ready', sendServices);
+    window.webContents.on('dom-ready', sendData);
 
     // Load navigation view
     window.loadFile(path.resolve(resourcesDir, 'index.html'))
@@ -89,9 +94,9 @@ function createWindow() {
     });
 
     // Open add service window
-    ipcMain.on('openAddServiceWindow', () => {
-        if (!addServiceWindow) {
-            addServiceWindow = new BrowserWindow({
+    ipcMain.on('openServiceSettings', (e, serviceId) => {
+        if (!serviceSettingsWindow) {
+            serviceSettingsWindow = new BrowserWindow({
                 webPreferences: {
                     nodeIntegration: true,
                     enableRemoteModule: true,
@@ -100,26 +105,40 @@ function createWindow() {
                 parent: window,
                 modal: true,
                 autoHideMenuBar: true,
+                height: 850,
             });
-            addServiceWindow.on('close', () => {
-                addServiceWindow = null;
+            serviceSettingsWindow.on('close', () => {
+                serviceSettingsWindow = null;
             });
             if (devMode) {
-                addServiceWindow.webContents.openDevTools({
+                serviceSettingsWindow.webContents.openDevTools({
                     mode: 'right'
                 });
             }
-            addServiceWindow.webContents.on('dom-ready', () => {
-                addServiceWindow.webContents.send('syncIcons', listIcons('brands'), listIcons('solid'));
+            serviceSettingsWindow.webContents.on('dom-ready', () => {
+                serviceSettingsWindow.webContents.send('syncIcons', brandIcons, solidIcons);
+                serviceSettingsWindow.webContents.send('loadService', serviceId, config.services[serviceId]);
             });
-            addServiceWindow.loadFile(path.resolve(resourcesDir, 'add-service.html'))
+            serviceSettingsWindow.loadFile(path.resolve(resourcesDir, 'service-settings.html'))
                 .catch(console.error);
         }
     });
+
+    ipcMain.on('saveService', (e, id, data) => {
+        const newService = new Service(data);
+        if (typeof id === 'number') {
+            config.services[id] = newService;
+        } else {
+            config.services.push(newService);
+        }
+        config.save();
+
+        window.webContents.send('updateService', id, newService);
+    });
 }
 
-function sendServices() {
-    window.webContents.send('services', config.services, selectedService);
+function sendData() {
+    window.webContents.send('data', brandIcons, solidIcons, config.services, selectedService);
 }
 
 function setActiveService(index) {
@@ -129,7 +148,11 @@ function setActiveService(index) {
 function listIcons(set) {
     const directory = path.resolve(resourcesDir, 'icons/' + set);
     const icons = [];
-    fs.readdirSync(directory).forEach(i => icons.push(i.split('.svg')[0]));
+    const dir = set === 'brands' ? 'fab' : 'fas';
+    fs.readdirSync(directory).forEach(i => icons.push({
+        name: i.split('.svg')[0],
+        faIcon: dir + ' fa-' + i.split('.svg')[0],
+    }));
     return icons;
 }
 

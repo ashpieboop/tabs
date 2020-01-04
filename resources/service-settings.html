@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Service settings</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+          integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="layout.css">
+
+    <style>
+        .form-group.hidden,
+        #icon-select.hidden {
+            display: none;
+        }
+
+        #icon-select {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .choice {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 128px;
+            height: 128px;
+            margin: 8px;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+
+        .choice img {
+            margin: 16px;
+            max-width: 112px;
+            max-height: 48px;
+            filter: invert(1);
+        }
+
+        .choice span {
+            display: block;
+            width: 100%;
+            margin: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .choice input {
+            display: none;
+        }
+
+        .choice.hidden {
+            display: none;
+        }
+
+        .choice.selected {
+            background-color: #ffffff26;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #icon-choice {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #icon-select {
+            overflow: auto;
+        }
+
+        .form-group {
+            display: grid;
+
+            margin: 8px;
+            grid-template-columns: 0fr auto;
+        }
+
+        .form-group > * {
+            margin: 8px;
+            padding: 8px;
+            white-space: nowrap;
+            align-self: center;
+        }
+
+        .form-group > :nth-child(1) {
+            justify-self: end;
+        }
+
+        .form-group > :nth-child(2) {
+            margin-left: 8px;
+        }
+
+        #buttons {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        #buttons > button {
+            max-width: 120px;
+        }
+
+        #buttons > :nth-child(1) {
+            width: 100%;
+            justify-self: auto;
+        }
+
+        #buttons > :nth-child(2) {
+            width: 100%;
+            justify-self: end;
+        }
+    </style>
+</head>
+
+<body>
+<form action="javascript: save();">
+    <h1>Loading...</h1>
+
+    <div class="form-group">
+        <label for="name">Service name</label>
+        <input type="text" name="name" id="name" required>
+    </div>
+
+    <div class="form-group">
+        <label for="url">Service home URL</label>
+        <input type="text" name="url" id="url" required>
+    </div>
+
+    <div id="icon-choice">
+        <h2>Service icon</h2>
+        <div class="form-group">
+            <label for="use-favicon">Use favicon</label>
+            <input type="checkbox" name="useFavicon" id="use-favicon">
+        </div>
+
+        <div class="form-group">
+            <label for="is-image">Use image instead of a built-in icon for the default icon</label>
+            <input type="checkbox" name="isImage" id="is-image">
+        </div>
+
+        <div class="form-group" id="icon-search-group">
+            <label for="built-in-icon-search">Icon</label>
+            <input type="text" name="icon-search" id="built-in-icon-search">
+        </div>
+        <div id="icon-select"></div>
+
+        <div class="form-group">
+            <label for="icon-url">Icon URL</label>
+            <input type="text" name="icon" id="icon-url">
+        </div>
+    </div>
+
+    <div class="form-group" id="buttons">
+        <button id="cancel-button">Cancel</button>
+        <button type="submit">Save</button>
+    </div>
+</form>
+
+<script>
+    const {ipcRenderer, remote} = require('electron');
+    let isImageCheckbox;
+    let builtInIconSearchField;
+    let iconSelect;
+    let iconUrlField;
+
+    let serviceId;
+    let service;
+
+    ipcRenderer.on('syncIcons', (event, brands, solid) => {
+        loadIcons(brands, 'brands');
+        loadIcons(solid, 'solid');
+    });
+
+    ipcRenderer.on('loadService', (e, id, data) => {
+        console.log('Load service', id);
+        if (id === null) {
+            document.title = 'Add a new service';
+            service = {};
+
+            document.querySelector('h1').innerText = 'Add a new service';
+        } else {
+            serviceId = id;
+            service = data;
+            document.querySelector('h1').innerText = 'Service settings';
+            loadServiceValues();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        isImageCheckbox = document.querySelector('#is-image');
+        builtInIconSearchField = document.querySelector('#built-in-icon-search');
+        iconSelect = document.querySelector('#icon-select');
+        iconUrlField = document.querySelector('#icon-url');
+
+        loadServiceValues();
+
+
+        isImageCheckbox.addEventListener('click', () => {
+            updateIconChoiceForm(isImageCheckbox.checked);
+        });
+        updateIconChoiceForm(isImageCheckbox.checked);
+
+        builtInIconSearchField.addEventListener('input', updateIconSearchResults);
+
+        document.getElementById('cancel-button').addEventListener('click', e => {
+            e.preventDefault();
+            remote.getCurrentWindow().close();
+        });
+    });
+
+    function loadServiceValues() {
+        if (!service || !isImageCheckbox) {
+            return;
+        }
+
+        document.getElementById('name').value = service.name;
+        document.getElementById('url').value = service.url;
+        document.getElementById('use-favicon').checked = service.useFavicon;
+        isImageCheckbox.checked = service.isImage;
+        if (service.isImage) {
+            iconUrlField.value = service.icon;
+        } else {
+            builtInIconSearchField.value = service.icon;
+            updateIconSearchResults();
+            const icon = Array.from(iconSelect.querySelectorAll('label')).find(i => i.dataset.icon === service.icon);
+            if (icon) {
+                selectIcon(icon);
+            }
+        }
+    }
+
+    function updateIconSearchResults() {
+        const searchStr = builtInIconSearchField.value;
+        iconSelect.childNodes.forEach(c => {
+            if (c.dataset.icon.match(searchStr) || searchStr.match(c.dataset.icon)) {
+                c.classList.remove('hidden');
+            } else {
+                c.classList.add('hidden');
+            }
+        });
+    }
+
+    function loadIcons(icons, set) {
+        for (const icon of icons) {
+            if (icon.name.length === 0) continue;
+            const choice = document.createElement('label');
+            choice.dataset.icon = icon.name;
+            choice.classList.add('choice');
+
+            const display = document.createElement('img');
+            display.src = 'icons/' + set + '/' + icon.name + '.svg';
+            choice.appendChild(display);
+
+            const label = document.createElement('span');
+            label.innerText = icon.name;
+            choice.appendChild(label);
+
+            const radio = document.createElement('input');
+            radio.setAttribute('type', 'radio');
+            radio.setAttribute('name', 'icon');
+            radio.setAttribute('value', icon.name);
+            choice.appendChild(radio);
+
+            iconSelect.appendChild(choice);
+
+            choice.addEventListener('click', () => {
+                selectIcon(choice);
+            });
+        }
+    }
+
+    function selectIcon(choice) {
+        builtInIconSearchField.value = choice.dataset.icon;
+        for (const otherChoice of iconSelect.children) {
+            otherChoice.classList.remove('selected');
+        }
+        choice.classList.add('selected');
+        choice.querySelector('input[type=radio]').select();
+    }
+
+    function updateIconChoiceForm(isUrl) {
+        if (isUrl) {
+            iconSelect.classList.add('hidden');
+            builtInIconSearchField.parentElement.classList.add('hidden');
+            iconUrlField.parentElement.classList.remove('hidden');
+        } else {
+            iconSelect.classList.remove('hidden');
+            builtInIconSearchField.parentElement.classList.remove('hidden');
+            iconUrlField.parentElement.classList.add('hidden');
+        }
+    }
+
+    function isValid() {
+        if (typeof service.name !== 'string' || service.name.length === 0) {
+            console.log('Invalid name');
+            return false;
+        }
+        if (typeof service.partition !== 'string' || service.partition.length === 0) {
+            console.log('Invalid partition');
+            return false;
+        }
+        if (typeof service.url !== 'string' || service.url.length === 0) {
+            console.log('Invalid url');
+            return false;
+        }
+        if (!(service.useFavicon || typeof service.icon === 'string' && service.icon.length > 0)) {
+            console.log('Invalid icon');
+            return false;
+        }
+        return true;
+    }
+
+    function save() {
+        const formData = new FormData(document.querySelector('form'));
+        service.name = formData.get('name');
+        if (typeof service.partition !== 'string' || service.partition.length === 0) {
+            service.partition = service.name.replace(/ /g, '-');
+            service.partition = service.partition.replace(/[^a-zA-Z-_]/g, '');
+        }
+        service.url = formData.get('url');
+        service.isImage = formData.get('isImage') === 'on';
+        service.icon = formData.get('icon');
+        service.useFavicon = formData.get('useFavicon') === 'on';
+
+
+        if (!isValid()) {
+            return;
+        }
+
+        ipcRenderer.send('saveService', serviceId, service);
+        remote.getCurrentWindow().close();
+    }
+</script>
+</body>
+</html>

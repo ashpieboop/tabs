@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="layout.css">
 
     <style>
+        body {
+            display: flex;
+            flex-direction: row;
+        }
+
         #service-selector {
             flex-grow: 1;
             display: block;
@@ -156,8 +161,15 @@
 
 <script>
     const {
-        ipcRenderer
+        remote,
+        ipcRenderer,
     } = require('electron');
+    const {
+        Menu,
+        MenuItem,
+    } = remote;
+
+    const icons = [];
 
     let services = [];
     let selectedService = 0;
@@ -165,7 +177,31 @@
     let backButton;
     let addButton;
 
-    ipcRenderer.on('services', (event, actualServices, actualSelectedService) => {
+
+    // Service context menu
+    const serviceContextMenu = new Menu();
+    const settingsItem = new MenuItem({
+        label: 'Edit', click: () => {
+            ipcRenderer.send('openServiceSettings', serviceContextMenu.serviceId);
+        }
+    });
+    serviceContextMenu.append(settingsItem);
+
+    function openServiceContextMenu(event, index) {
+        event.preventDefault();
+        serviceContextMenu.serviceId = index;
+        serviceContextMenu.popup({window: remote.getCurrentWindow()});
+    }
+
+
+    ipcRenderer.on('data', (event, brandIcons, solidIcons, actualServices, actualSelectedService) => {
+        for (const icon of brandIcons) {
+            icons.push(icon);
+        }
+        for (const icon of solidIcons) {
+            icons.push(icon);
+        }
+
         console.log('Updating services ...');
         services = actualServices;
 
@@ -178,41 +214,82 @@
         serviceContainer.querySelectorAll(":scope > webview").forEach(w => serviceContainer.removeChild(w));
 
         for (let i = 0; i < services.length; i++) {
-            let service = services[i];
-            let li = document.createElement('li');
-            service.li = li;
-
-            let button = document.createElement('button');
-            button.dataset.serviceId = '' + i;
-            button.dataset.tooltip = service.name;
-            button.addEventListener('click', () => {
-                setActiveService(button.dataset.serviceId);
-                ipcRenderer.send('setActiveService', button.dataset.serviceId);
-            });
-
-            let icon;
-            if (service.useFavicon && service.favicon != null) {
-                icon = document.createElement('img');
-                icon.src = service.favicon;
-                icon.alt = service.name;
-            } else if (service.isImage) {
-                icon = document.createElement('img');
-                icon.src = service.icon;
-                icon.alt = service.name;
-            } else {
-                icon = document.createElement('i');
-                service.icon.split(' ').forEach(cl => {
-                    icon.classList.add(cl);
-                });
-            }
-
-            button.appendChild(icon);
-            li.appendChild(button);
-            li.button = button;
-            nav.appendChild(li);
+            createService(i);
         }
         setActiveService(actualSelectedService);
     });
+
+    ipcRenderer.on('updateService', (e, id, data) => {
+        if (id === null) {
+            services.push(data);
+            createService(services.length - 1);
+        } else {
+            let nav = document.querySelector('#service-selector');
+
+            // Remove nav
+            const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
+            const nextNavButton = oldNavButton.nextSibling;
+            nav.removeChild(oldNavButton);
+
+            // Remove webview
+            if (services[id].view) {
+                const serviceContainer = document.querySelector('#services');
+                serviceContainer.removeChild(services[id].view);
+            }
+
+            // Create new service
+            services[id] = data;
+            createService(id, nextNavButton);
+            if (parseInt(selectedService) === id) {
+                setActiveService(id);
+            }
+        }
+    });
+
+    function createService(index, nextNavButton) {
+        let service = services[index];
+        let li = document.createElement('li');
+        service.li = li;
+
+        let button = document.createElement('button');
+        button.dataset.serviceId = '' + index;
+        button.dataset.tooltip = service.name;
+        button.addEventListener('click', () => {
+            setActiveService(button.dataset.serviceId);
+            ipcRenderer.send('setActiveService', button.dataset.serviceId);
+        });
+        button.addEventListener('contextmenu', e => openServiceContextMenu(e, index));
+
+        let icon;
+        if (service.useFavicon && service.favicon != null) {
+            icon = document.createElement('img');
+            icon.src = service.favicon;
+            icon.alt = service.name;
+        } else if (service.isImage) {
+            icon = document.createElement('img');
+            icon.src = service.icon;
+            icon.alt = service.name;
+        } else {
+            icon = document.createElement('i');
+            const iconProperties = icons.find(i => i.name === service.icon);
+            if (iconProperties) {
+                iconProperties.faIcon.split(' ').forEach(cl => {
+                    icon.classList.add(cl);
+                });
+            }
+        }
+
+        button.appendChild(icon);
+        li.appendChild(button);
+        li.button = button;
+
+        const nav = document.querySelector('#service-selector');
+        if (nextNavButton === nav || nextNavButton === undefined) {
+            nav.appendChild(li);
+        } else {
+            nav.insertBefore(li, nextNavButton);
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         forwardButton = document.querySelector('#forward');
@@ -222,7 +299,7 @@
         backButton.addEventListener('click', () => goBack());
 
         addButton = document.querySelector('#add-button');
-        addButton.addEventListener('click', () => ipcRenderer.send('openAddServiceWindow'));
+        addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
     });
 
     function setActiveService(serviceId) {
@@ -237,7 +314,6 @@
 
                 document.querySelector('#services').appendChild(currentService.view);
                 currentService.view.addEventListener('dom-ready', event => {
-                    console.log(event);
                     currentService.viewReady = true;
                     updateNavigation();
                 });
