@@ -1,0 +1,146 @@
+body {
+    display: flex;
+    flex-direction: row;
+}
+
+#service-selector {
+    flex-grow: 1;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+*:focus {
+    outline-color: rgb(118, 93, 176);
+}
+
+#navigation button {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    margin: 0;
+    height: 72px;
+
+    color: #fff;
+    border: 0;
+    background: transparent;
+
+    cursor: pointer;
+}
+
+#navigation button img {
+    width: 32px;
+}
+
+#navigation button i {
+    font-size: 32px;
+}
+
+#service-selector li {
+    position: relative;
+}
+
+#service-selector li.active button {
+    position: relative;
+    background-color: #fff2;
+}
+
+#service-selector li.active button::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    border-left: 4px solid #ffffff2e;
+}
+
+#service-selector li.loaded::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+
+    background-color: #fff;
+    border-radius: 100%;
+}
+
+#navigation button:hover {
+    background-color: #fff3;
+}
+
+#history {
+    padding: 8px;
+}
+
+#history button {
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding: initial;
+    font-size: 12px;
+
+    background: #fff1;
+    border: 1px solid #fff4;
+    border-radius: 72px;
+
+    color: #fff;
+    cursor: pointer;
+}
+
+#history button i {
+    font-size: inherit;
+}
+
+#history button.disabled {
+    color: #888;
+    border: transparent;
+    background: transparent;
+    cursor: initial;
+}
+
+#history button:focus,
+#history button:hover {
+    outline: none;
+    border-color: #fff9;
+}
+
+#history button:hover:not(.disabled) {
+    outline: none;
+    background-color: #fff2;
+}
+
+#history button:active:not(.disabled) {
+    background-color: #fff4;
+}
+
+#navigation #add-button:not(:hover) {
+    opacity: 0.75;
+}
+
+#services {
+    position: relative;
+    flex-grow: 1;
+}
+
+#services > *:not(.loader) {
+    height: 100%;
+}
+
+#services > :not(.active):not(.loader) {
+    display: none;
+}
+
+#services > .loader {
+    width: 64px;
+    height: 64px;
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}

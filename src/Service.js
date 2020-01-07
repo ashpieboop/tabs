@@ -33,6 +33,7 @@ Service.requiredProperties = {
     'isImage': null,
     'url': null,
     'useFavicon': true,
+    'autoLoad': false,
 };
 
 export default Service;

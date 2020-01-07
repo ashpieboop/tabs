@@ -134,6 +134,11 @@
         <input type="text" name="url" id="url" required>
     </div>
 
+    <div class="form-group">
+        <label for="auto-load">Automatically load service in the background</label>
+        <input type="checkbox" name="autoLoad" id="auto-load">
+    </div>
+
     <div id="icon-choice">
         <h2>Service icon</h2>
         <div class="form-group">
@@ -216,27 +221,6 @@
         });
     });
 
-    function loadServiceValues() {
-        if (!service || !isImageCheckbox) {
-            return;
-        }
-
-        document.getElementById('name').value = service.name;
-        document.getElementById('url').value = service.url;
-        document.getElementById('use-favicon').checked = service.useFavicon;
-        isImageCheckbox.checked = service.isImage;
-        if (service.isImage) {
-            iconUrlField.value = service.icon;
-        } else {
-            builtInIconSearchField.value = service.icon;
-            updateIconSearchResults();
-            const icon = Array.from(iconSelect.querySelectorAll('label')).find(i => i.dataset.icon === service.icon);
-            if (icon) {
-                selectIcon(icon);
-            }
-        }
-    }
-
     function updateIconSearchResults() {
         const searchStr = builtInIconSearchField.value;
         iconSelect.childNodes.forEach(c => {
@@ -298,6 +282,50 @@
         }
     }
 
+    function loadServiceValues() {
+        if (!service || !isImageCheckbox) {
+            return;
+        }
+
+        document.getElementById('name').value = service.name;
+        document.getElementById('url').value = service.url;
+        document.getElementById('use-favicon').checked = service.useFavicon;
+        document.getElementById('auto-load').checked = service.autoLoad;
+        isImageCheckbox.checked = service.isImage;
+        if (service.isImage) {
+            iconUrlField.value = service.icon;
+        } else {
+            builtInIconSearchField.value = service.icon;
+            updateIconSearchResults();
+            const icon = Array.from(iconSelect.querySelectorAll('label')).find(i => i.dataset.icon === service.icon);
+            if (icon) {
+                selectIcon(icon);
+            }
+        }
+    }
+
+    function save() {
+        const formData = new FormData(document.querySelector('form'));
+        service.name = formData.get('name');
+        if (typeof service.partition !== 'string' || service.partition.length === 0) {
+            service.partition = service.name.replace(/ /g, '-');
+            service.partition = service.partition.replace(/[^a-zA-Z-_]/g, '');
+        }
+        service.url = formData.get('url');
+        service.isImage = formData.get('isImage') === 'on';
+        service.icon = formData.get('icon');
+        service.useFavicon = formData.get('useFavicon') === 'on';
+        service.autoLoad = formData.get('autoLoad') === 'on';
+
+
+        if (!isValid()) {
+            return;
+        }
+
+        ipcRenderer.send('saveService', serviceId, service);
+        remote.getCurrentWindow().close();
+    }
+
     function isValid() {
         if (typeof service.name !== 'string' || service.name.length === 0) {
             console.log('Invalid name');
@@ -316,27 +344,6 @@
             return false;
         }
         return true;
-    }
-
-    function save() {
-        const formData = new FormData(document.querySelector('form'));
-        service.name = formData.get('name');
-        if (typeof service.partition !== 'string' || service.partition.length === 0) {
-            service.partition = service.name.replace(/ /g, '-');
-            service.partition = service.partition.replace(/[^a-zA-Z-_]/g, '');
-        }
-        service.url = formData.get('url');
-        service.isImage = formData.get('isImage') === 'on';
-        service.icon = formData.get('icon');
-        service.useFavicon = formData.get('useFavicon') === 'on';
-
-
-        if (!isValid()) {
-            return;
-        }
-
-        ipcRenderer.send('saveService', serviceId, service);
-        remote.getCurrentWindow().close();
     }
 </script>
 </body>
