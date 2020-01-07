@@ -1,0 +1,124 @@
+.form-group.hidden,
+#icon-select.hidden {
+    display: none;
+}
+
+#icon-select {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 128px;
+    height: 128px;
+    margin: 8px;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.choice img {
+    margin: 16px;
+    max-width: 112px;
+    max-height: 48px;
+    filter: invert(1);
+}
+
+.choice span {
+    display: block;
+    width: 100%;
+    margin: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.choice input {
+    display: none;
+}
+
+.choice.hidden {
+    display: none;
+}
+
+.choice.selected {
+    background-color: #ffffff26;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.form-body {
+    flex: 1;
+    overflow: hidden auto;
+}
+
+.form-header,
+.form-footer,
+.form-group-header {
+    background-color: #ffffff14;
+}
+
+.form-group {
+    display: grid;
+
+    margin: 8px;
+    grid-template-columns: 0fr auto;
+}
+
+.form-group > * {
+    margin: 8px;
+    padding: 8px;
+    white-space: nowrap;
+    align-self: center;
+}
+
+.form-group > :nth-child(1) {
+    justify-self: end;
+}
+
+.form-group > :nth-child(2) {
+    margin-left: 8px;
+}
+
+#buttons {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+#buttons > button {
+    max-width: 120px;
+}
+
+#buttons > :nth-child(1) {
+    width: 100%;
+    justify-self: auto;
+}
+
+#buttons > :nth-child(2) {
+    width: 100%;
+    justify-self: end;
+}
+
+
+#icon-choice {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 570px;
+}
+
+#icon-select {
+    overflow: auto;
+}
+
+#custom-css {
+    min-height: 96px;
+}

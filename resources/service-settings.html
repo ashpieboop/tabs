@@ -8,169 +8,69 @@
           integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 
     <link rel="stylesheet" href="layout.css">
-
-    <style>
-        .form-group.hidden,
-        #icon-select.hidden {
-            display: none;
-        }
-
-        #icon-select {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-        }
-
-        .choice {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            width: 128px;
-            height: 128px;
-            margin: 8px;
-            border: 1px solid black;
-            cursor: pointer;
-        }
-
-        .choice img {
-            margin: 16px;
-            max-width: 112px;
-            max-height: 48px;
-            filter: invert(1);
-        }
-
-        .choice span {
-            display: block;
-            width: 100%;
-            margin: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .choice input {
-            display: none;
-        }
-
-        .choice.hidden {
-            display: none;
-        }
-
-        .choice.selected {
-            background-color: #ffffff26;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        #icon-choice {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #icon-select {
-            overflow: auto;
-        }
-
-        .form-group {
-            display: grid;
-
-            margin: 8px;
-            grid-template-columns: 0fr auto;
-        }
-
-        .form-group > * {
-            margin: 8px;
-            padding: 8px;
-            white-space: nowrap;
-            align-self: center;
-        }
-
-        .form-group > :nth-child(1) {
-            justify-self: end;
-        }
-
-        .form-group > :nth-child(2) {
-            margin-left: 8px;
-        }
-
-        #buttons {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        #buttons > button {
-            max-width: 120px;
-        }
-
-        #buttons > :nth-child(1) {
-            width: 100%;
-            justify-self: auto;
-        }
-
-        #buttons > :nth-child(2) {
-            width: 100%;
-            justify-self: end;
-        }
-    </style>
+    <link rel="stylesheet" href="service-settings.css">
 </head>
 
 <body>
 <form action="javascript: save();">
-    <h1>Loading...</h1>
-
-    <div class="form-group">
-        <label for="name">Service name</label>
-        <input type="text" name="name" id="name" required>
+    <div class="form-header">
+        <h1>Loading...</h1>
     </div>
 
-    <div class="form-group">
-        <label for="url">Service home URL</label>
-        <input type="text" name="url" id="url" required>
-    </div>
-
-    <div class="form-group">
-        <label for="auto-load">Automatically load service in the background</label>
-        <input type="checkbox" name="autoLoad" id="auto-load">
-    </div>
-
-    <div class="form-group">
-        <label for="custom-css">Custom CSS styling</label>
-        <textarea name="customCSS" id="custom-css" rows="3"></textarea>
-    </div>
-
-    <div id="icon-choice">
-        <h2>Service icon</h2>
+    <div class="form-body">
         <div class="form-group">
-            <label for="use-favicon">Use favicon</label>
-            <input type="checkbox" name="useFavicon" id="use-favicon">
+            <label for="name">Service name</label>
+            <input type="text" name="name" id="name" required>
         </div>
 
         <div class="form-group">
-            <label for="is-image">Use image instead of a built-in icon for the default icon</label>
-            <input type="checkbox" name="isImage" id="is-image">
+            <label for="url">Service home URL</label>
+            <input type="text" name="url" id="url" required>
         </div>
-
-        <div class="form-group" id="icon-search-group">
-            <label for="built-in-icon-search">Icon</label>
-            <input type="text" name="icon-search" id="built-in-icon-search">
-        </div>
-        <div id="icon-select"></div>
 
         <div class="form-group">
-            <label for="icon-url">Icon URL</label>
-            <input type="text" name="icon" id="icon-url">
+            <label for="auto-load">Automatically load service in the background</label>
+            <input type="checkbox" name="autoLoad" id="auto-load">
+        </div>
+
+        <div class="form-group">
+            <label for="custom-css">Custom CSS styling</label>
+            <textarea name="customCSS" id="custom-css" rows="3"></textarea>
+        </div>
+
+        <div id="icon-choice">
+            <div class="form-group-header">
+                <h2>Service icon</h2>
+            </div>
+
+            <div class="form-group">
+                <label for="use-favicon">Use favicon</label>
+                <input type="checkbox" name="useFavicon" id="use-favicon">
+            </div>
+
+            <div class="form-group">
+                <label for="is-image">Use image instead of a built-in icon for the default icon</label>
+                <input type="checkbox" name="isImage" id="is-image">
+            </div>
+
+            <div class="form-group" id="icon-search-group">
+                <label for="built-in-icon-search">Icon</label>
+                <input type="text" name="icon-search" id="built-in-icon-search">
+            </div>
+            <div id="icon-select"></div>
+
+            <div class="form-group">
+                <label for="icon-url">Icon URL</label>
+                <input type="text" name="icon" id="icon-url">
+            </div>
         </div>
     </div>
 
-    <div class="form-group" id="buttons">
-        <button id="cancel-button">Cancel</button>
-        <button type="submit">Save</button>
+    <div class="form-footer">
+        <div class="form-group" id="buttons">
+            <button id="cancel-button">Cancel</button>
+            <button type="submit">Save</button>
+        </div>
     </div>
 </form>
 

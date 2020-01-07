@@ -16,6 +16,29 @@ body {
     font-family: sans-serif;
 }
 
+textarea {
+    resize: vertical;
+    min-height: 32px;
+}
+
+input, select, textarea, button {
+    border: 0;
+    color: #fff;
+    background-color: #ffffff12;
+    border-radius: 3px;
+}
+
+button {
+    padding: 8px 16px;
+    text-transform: uppercase;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #ffffff20;
+}
+
 .loader {
     --border-width: 6px;
 
