@@ -139,6 +139,11 @@
         <input type="checkbox" name="autoLoad" id="auto-load">
     </div>
 
+    <div class="form-group">
+        <label for="custom-css">Custom CSS styling</label>
+        <textarea name="customCSS" id="custom-css" rows="3"></textarea>
+    </div>
+
     <div id="icon-choice">
         <h2>Service icon</h2>
         <div class="form-group">
@@ -205,8 +210,6 @@
         iconSelect = document.querySelector('#icon-select');
         iconUrlField = document.querySelector('#icon-url');
 
-        loadServiceValues();
-
 
         isImageCheckbox.addEventListener('click', () => {
             updateIconChoiceForm(isImageCheckbox.checked);
@@ -219,6 +222,8 @@
             e.preventDefault();
             remote.getCurrentWindow().close();
         });
+
+        ipcRenderer.send('sync-settings');
     });
 
     function updateIconSearchResults() {
@@ -267,7 +272,7 @@
             otherChoice.classList.remove('selected');
         }
         choice.classList.add('selected');
-        choice.querySelector('input[type=radio]').select();
+        choice.querySelector('input[type=radio]').checked = true;
     }
 
     function updateIconChoiceForm(isUrl) {
@@ -291,6 +296,8 @@
         document.getElementById('url').value = service.url;
         document.getElementById('use-favicon').checked = service.useFavicon;
         document.getElementById('auto-load').checked = service.autoLoad;
+        document.getElementById('custom-css').value = service.customCSS;
+
         isImageCheckbox.checked = service.isImage;
         if (service.isImage) {
             iconUrlField.value = service.icon;
@@ -316,6 +323,7 @@
         service.icon = formData.get('icon');
         service.useFavicon = formData.get('useFavicon') === 'on';
         service.autoLoad = formData.get('autoLoad') === 'on';
+        service.customCSS = formData.get('customCSS');
 
 
         if (!isValid()) {

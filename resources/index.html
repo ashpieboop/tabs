@@ -254,13 +254,22 @@
             service.view.setAttribute('partition', 'persist:service_' + service.partition);
             service.view.setAttribute('autosize', "true");
 
+            // Append element to DOM
             document.querySelector('#services').appendChild(service.view);
+
+            // On load event
             service.view.addEventListener('dom-ready', () => {
+                if (service.customCSS) {
+                    service.view.insertCSS(service.customCSS);
+                }
+
                 document.querySelector('#services > .loader').classList.add('hidden');
                 updateNavigation();
                 service.li.classList.add('loaded');
                 service.viewReady = true;
             });
+
+            // Load favicon
             service.view.addEventListener('page-favicon-updated', event => {
                 console.debug('Loaded favicons for', service.name, event.favicons);
                 if (event.favicons.length > 0) {

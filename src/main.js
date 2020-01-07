@@ -122,9 +122,13 @@ function createWindow() {
                     mode: 'right'
                 });
             }
-            serviceSettingsWindow.webContents.on('dom-ready', () => {
+            let syncListener;
+            ipcMain.on('sync-settings', syncListener = () => {
                 serviceSettingsWindow.webContents.send('syncIcons', brandIcons, solidIcons);
                 serviceSettingsWindow.webContents.send('loadService', serviceId, config.services[serviceId]);
+            });
+            serviceSettingsWindow.on('close', () => {
+                ipcMain.removeListener('sync-settings', syncListener);
             });
             serviceSettingsWindow.loadFile(path.resolve(resourcesDir, 'service-settings.html'))
                 .catch(console.error);
