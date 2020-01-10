@@ -8,4 +8,5 @@ You can navigate inside the focused service using the navigation buttons (previo
 
 ## Contributing
 
-Pending license
+## License
+[MIT - see LICENSE file](LICENSE)
