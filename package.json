@@ -28,7 +28,7 @@
     "electron-builder": "^21.2.0"
   },
   "build": {
-    "appId": "tabs",
+    "appId": "tabs-app",
     "linux": {
       "target": [
         "dir"
