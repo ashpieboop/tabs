@@ -3,8 +3,9 @@ import path from "path";
 import {homedir} from "os";
 
 import Service from "./Service";
+import Meta from "./Meta";
 
-const configDir = path.resolve(homedir(), '.tabs-app');
+const configDir = Meta.isDevMode() ? path.resolve(homedir(), '.config/tabs-app-dev') : path.resolve(homedir(), '.config/tabs-app');
 const configFile = path.resolve(configDir, 'config.json');
 
 export default class Config {
@@ -29,7 +30,7 @@ export default class Config {
         }
 
         if (this.services.length === 0) {
-            this.services.push(new Service('welcome', 'Welcome', 'fas fa-rocket', false, 'https://gitlab.com/ArisuOngaku/tabs', false));
+            this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://gitlab.com/ArisuOngaku/tabs', false));
         }
 
         this.save();
@@ -39,6 +40,6 @@ export default class Config {
         console.log('Saving config');
         this.services = this.services.filter(s => s !== null);
         fs.writeFileSync(configFile, JSON.stringify(this, null, 4));
-        console.log('> Config saved');
+        console.log('> Config saved to', configFile.toString());
     }
 }

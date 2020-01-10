@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
 
+import Meta from "./Meta";
 import Config from "./Config";
 import Service from "./Service";
 
@@ -10,7 +11,7 @@ const iconPath = path.resolve(resourcesDir, 'logo.png');
 
 const config = new Config();
 
-const devMode = process.argv.length > 2 && process.argv[2] === '--dev';
+const devMode = Meta.isDevMode();
 
 // Load icons
 const brandIcons = listIcons('brands');

@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Persistent and separate browser tabs in one window",
   "author": {
     "name": "Alice Gaudon",
@@ -28,7 +28,7 @@
     "electron-builder": "^21.2.0"
   },
   "build": {
-    "appId": "tabs",
+    "appId": "tabs-app",
     "linux": {
       "target": [
         "dir"

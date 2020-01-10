@@ -40,6 +40,11 @@ body {
     position: relative;
 }
 
+#service-selector li button,
+#navigation > button {
+    border-radius: 0;
+}
+
 #service-selector li.active button {
     position: relative;
     background-color: #fff2;
