@@ -43,7 +43,7 @@
     const icons = [];
 
     let services = [];
-    let selectedService = 0;
+    let selectedService = null;
     let forwardButton;
     let backButton;
     let addButton;
@@ -51,6 +51,11 @@
 
     // Service context menu
     const serviceContextMenu = new Menu();
+    serviceContextMenu.append(new MenuItem({
+        label: 'Reload', click: () => {
+            reloadService(serviceContextMenu.serviceId);
+        }
+    }));
     serviceContextMenu.append(new MenuItem({
         label: 'Close', click: () => {
             unloadService(serviceContextMenu.serviceId);
@@ -267,6 +272,10 @@
                 updateNavigation();
                 service.li.classList.add('loaded');
                 service.viewReady = true;
+
+                if (selectedService === null) {
+                    setActiveService(serviceId);
+                }
             });
 
             // Load favicon
@@ -308,6 +317,16 @@
                     updateNavigation();
                 }
             }
+        }
+    }
+
+    function reloadService(serviceId) {
+        const service = services[serviceId];
+        if (service.view && service.viewReady) {
+            document.querySelector('#services > .loader').classList.remove('hidden');
+            service.view.reload();
+        } else if (!service.view && !service.viewReady) {
+            loadService(serviceId, service);
         }
     }
 
