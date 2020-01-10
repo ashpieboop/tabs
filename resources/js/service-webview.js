@@ -55,25 +55,29 @@ webContents.on('context-menu', (event, props) => {
 
     // Text clipboard
     if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste || editFlags.canDelete) {
-        if (menu.items.length > 0) {
-            menu.append(new MenuItem({type: 'separator'}));
-        }
-        if (editFlags.canUndo) {
-            menu.append(new MenuItem({
-                label: 'Undo',
-                role: 'undo',
-            }));
-        }
-        if (editFlags.canRedo) {
-            menu.append(new MenuItem({
-                label: 'Redo',
-                role: 'redo',
-            }));
+        if (editFlags.canUndo || editFlags.canRedo) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            if (editFlags.canUndo) {
+                menu.append(new MenuItem({
+                    label: 'Undo',
+                    role: 'undo',
+                }));
+            }
+            if (editFlags.canRedo) {
+                menu.append(new MenuItem({
+                    label: 'Redo',
+                    role: 'redo',
+                }));
+            }
         }
 
         if (menu.items.length > 0) {
             menu.append(new MenuItem({type: 'separator'}));
         }
+
         menu.append(new MenuItem({
             label: 'Cut',
             role: 'cut',
