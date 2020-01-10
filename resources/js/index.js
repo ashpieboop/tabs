@@ -225,7 +225,8 @@ function loadService(serviceId, service) {
         service.view = document.createElement('webview');
         service.view.setAttribute('src', service.url);
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
-        service.view.setAttribute('autosize', "true");
+        service.view.setAttribute('autosize', 'true');
+        service.view.setAttribute('preload', 'js/service-webview.js');
 
         // Append element to DOM
         document.querySelector('#services').appendChild(service.view);
