@@ -58,6 +58,7 @@ function createWindow() {
         },
         autoHideMenuBar: true,
         icon: iconPath,
+        title: Meta.title,
     });
     window.maximize();
     window.on('closed', () => {
@@ -157,12 +158,21 @@ function createWindow() {
         window.webContents.send('deleteService', id);
     });
 
+    ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
+        if (serviceId === null) {
+            window.setTitle(Meta.title);
+        } else {
+            const service = config.services[serviceId];
+            window.setTitle(Meta.getTitleForService(service, viewTitle));
+        }
+    });
+
     console.log('> App started');
 }
 
 function sendData() {
     console.log('Syncing data');
-    window.webContents.send('data', brandIcons, solidIcons, config.services, selectedService);
+    window.webContents.send('data', Meta.title, brandIcons, solidIcons, config.services, selectedService);
 }
 
 function setActiveService(index) {

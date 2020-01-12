@@ -8,6 +8,7 @@ const {
     dialog,
 } = remote;
 
+const appInfo = {};
 const icons = [];
 
 let services = [];
@@ -68,7 +69,11 @@ function openServiceContextMenu(event, serviceId) {
 }
 
 
-ipcRenderer.on('data', (event, brandIcons, solidIcons, actualServices, actualSelectedService) => {
+ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, actualSelectedService) => {
+    // App info
+    appInfo.title = appData.title;
+
+    // Icons
     for (const icon of brandIcons) {
         icons.push(icon);
     }
@@ -331,6 +336,16 @@ function updateNavigation() {
 
         if (view && view.canGoBack()) backButton.classList.remove('disabled');
         else backButton.classList.add('disabled');
+    }
+
+    updateWindowTitle();
+}
+
+function updateWindowTitle() {
+    if (selectedService === null) {
+        ipcRenderer.send('updateWindowTitle', null);
+    } else {
+        ipcRenderer.send('updateWindowTitle', selectedService, services[selectedService].view.getWebContents().getTitle());
     }
 }
 
