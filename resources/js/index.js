@@ -18,43 +18,53 @@ let addButton;
 
 
 // Service context menu
-const serviceContextMenu = new Menu();
-serviceContextMenu.append(new MenuItem({
-    label: 'Reload', click: () => {
-        reloadService(serviceContextMenu.serviceId);
-    }
-}));
-serviceContextMenu.append(new MenuItem({
-    label: 'Close', click: () => {
-        unloadService(serviceContextMenu.serviceId);
-    }
-}));
-serviceContextMenu.append(new MenuItem({type: "separator"}));
-serviceContextMenu.append(new MenuItem({
-    label: 'Edit', click: () => {
-        ipcRenderer.send('openServiceSettings', serviceContextMenu.serviceId);
-    }
-}));
-serviceContextMenu.append(new MenuItem({
-    label: 'Delete', click: () => {
-        dialog.showMessageBox(remote.getCurrentWindow(), {
-            type: 'question',
-            title: 'Confirm',
-            message: 'Are you sure you want to delete this service?',
-            buttons: ['Cancel', 'Confirm'],
-            cancelId: 0,
-        }).then(result => {
-            if (result.response === 1) {
-                ipcRenderer.send('deleteService', serviceContextMenu.serviceId);
-            }
-        }).catch(console.error);
-    }
-}));
-
-function openServiceContextMenu(event, index) {
+function openServiceContextMenu(event, serviceId) {
     event.preventDefault();
-    serviceContextMenu.serviceId = index;
-    serviceContextMenu.popup({window: remote.getCurrentWindow()});
+    const service = services[serviceId];
+
+    const menu = new Menu();
+    const ready = service.view && service.viewReady, notReady = !service.view && !service.viewReady;
+    menu.append(new MenuItem({
+        label: 'Home', click: () => {
+            service.view.loadURL(service.url)
+                .catch(console.error);
+        },
+        enabled: ready,
+    }));
+    menu.append(new MenuItem({
+        label: ready ? 'Reload' : 'Load', click: () => {
+            reloadService(serviceId);
+        },
+        enabled: ready || notReady,
+    }));
+    menu.append(new MenuItem({
+        label: 'Close', click: () => {
+            unloadService(serviceId);
+        },
+        enabled: ready,
+    }));
+    menu.append(new MenuItem({type: "separator"}));
+    menu.append(new MenuItem({
+        label: 'Edit', click: () => {
+            ipcRenderer.send('openServiceSettings', serviceId);
+        }
+    }));
+    menu.append(new MenuItem({
+        label: 'Delete', click: () => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+                type: 'question',
+                title: 'Confirm',
+                message: 'Are you sure you want to delete this service?',
+                buttons: ['Cancel', 'Confirm'],
+                cancelId: 0,
+            }).then(result => {
+                if (result.response === 1) {
+                    ipcRenderer.send('deleteService', serviceId);
+                }
+            }).catch(console.error);
+        }
+    }));
+    menu.popup({window: remote.getCurrentWindow()});
 }
 
 
