@@ -346,9 +346,10 @@ function loadService(serviceId, service) {
             }
 
             document.querySelector('#services > .loader').classList.add('hidden');
-            updateNavigation();
             service.li.classList.add('loaded');
             service.viewReady = true;
+
+            updateNavigation();
 
             if (selectedService === null) {
                 setActiveService(serviceId);
@@ -438,7 +439,7 @@ function updateNavigation() {
 function updateWindowTitle() {
     if (selectedService === null) {
         ipcRenderer.send('updateWindowTitle', null);
-    } else {
+    } else if(services[selectedService].viewReady) {
         ipcRenderer.send('updateWindowTitle', selectedService, services[selectedService].view.getWebContents().getTitle());
     }
 }
