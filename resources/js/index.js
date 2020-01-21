@@ -327,6 +327,8 @@ function setActiveService(serviceId) {
 function loadService(serviceId, service) {
     // Load service if not loaded yet
     if (!service.view && !service.viewReady) {
+        console.log('Loading service', serviceId);
+
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view = document.createElement('webview');
         service.view.setAttribute('src', service.url);
@@ -344,9 +346,10 @@ function loadService(serviceId, service) {
             }
 
             document.querySelector('#services > .loader').classList.add('hidden');
-            updateNavigation();
             service.li.classList.add('loaded');
             service.viewReady = true;
+
+            updateNavigation();
 
             if (selectedService === null) {
                 setActiveService(serviceId);
@@ -398,6 +401,7 @@ function unloadService(serviceId) {
 function reloadService(serviceId) {
     const service = services[serviceId];
     if (service.view && service.viewReady) {
+        console.log('Reloading service', serviceId);
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view.reload();
     } else if (!service.view && !service.viewReady) {
@@ -435,7 +439,7 @@ function updateNavigation() {
 function updateWindowTitle() {
     if (selectedService === null) {
         ipcRenderer.send('updateWindowTitle', null);
-    } else {
+    } else if(services[selectedService].viewReady) {
         ipcRenderer.send('updateWindowTitle', selectedService, services[selectedService].view.getWebContents().getTitle());
     }
 }
