@@ -327,6 +327,8 @@ function setActiveService(serviceId) {
 function loadService(serviceId, service) {
     // Load service if not loaded yet
     if (!service.view && !service.viewReady) {
+        console.log('Loading service', serviceId);
+
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view = document.createElement('webview');
         service.view.setAttribute('src', service.url);
@@ -398,6 +400,7 @@ function unloadService(serviceId) {
 function reloadService(serviceId) {
     const service = services[serviceId];
     if (service.view && service.viewReady) {
+        console.log('Reloading service', serviceId);
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view.reload();
     } else if (!service.view && !service.viewReady) {
