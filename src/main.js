@@ -58,6 +58,7 @@ function createWindow() {
         },
         autoHideMenuBar: true,
         icon: iconPath,
+        title: Meta.title,
     });
     window.maximize();
     window.on('closed', () => {
@@ -157,12 +158,43 @@ function createWindow() {
         window.webContents.send('deleteService', id);
     });
 
+    ipcMain.on('reorderService', (e, serviceId, targetId) => {
+        console.log('Reordering services', serviceId, targetId);
+
+        const oldServices = config.services;
+        config.services = [];
+
+        for (let i = 0; i < targetId; i++) {
+            if (i !== serviceId) {
+                config.services.push(oldServices[i]);
+            }
+        }
+        config.services.push(oldServices[serviceId]);
+        for (let i = targetId; i < oldServices.length; i++) {
+            if (i !== serviceId) {
+                config.services.push(oldServices[i]);
+            }
+        }
+
+        e.reply('reorderService', serviceId, targetId);
+        config.save();
+    });
+
+    ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
+        if (serviceId === null) {
+            window.setTitle(Meta.title);
+        } else {
+            const service = config.services[serviceId];
+            window.setTitle(Meta.getTitleForService(service, viewTitle));
+        }
+    });
+
     console.log('> App started');
 }
 
 function sendData() {
     console.log('Syncing data');
-    window.webContents.send('data', brandIcons, solidIcons, config.services, selectedService);
+    window.webContents.send('data', Meta.title, brandIcons, solidIcons, config.services, selectedService);
 }
 
 function setActiveService(index) {
