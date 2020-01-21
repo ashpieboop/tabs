@@ -158,6 +158,27 @@ function createWindow() {
         window.webContents.send('deleteService', id);
     });
 
+    ipcMain.on('reorderService', (e, serviceId, targetId) => {
+        console.log('Reordering services', serviceId, targetId);
+
+        const oldServices = config.services;
+        config.services = [];
+
+        for (let i = 0; i < targetId; i++) {
+            if (i !== serviceId) {
+                config.services.push(oldServices[i]);
+            }
+        }
+        config.services.push(oldServices[serviceId]);
+        for (let i = targetId; i < oldServices.length; i++) {
+            if (i !== serviceId) {
+                config.services.push(oldServices[i]);
+            }
+        }
+
+        e.reply('reorderService', serviceId, targetId);
+    });
+
     ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
         if (serviceId === null) {
             window.setTitle(Meta.title);

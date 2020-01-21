@@ -10,6 +10,51 @@ body {
     padding: 0;
 }
 
+#service-selector [draggable] {
+    user-select: none;
+    background-color: rgb(43, 43, 43);
+}
+
+#service-selector [draggable] img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+#service-selector .drag-target button {
+    height: 144px;
+    padding-top: 88px;
+}
+
+#service-selector .drag-target button::after,
+#service-last-drag-position.drag-target {
+    content: "";
+    height: 72px;
+    border: 1px dashed #fff;
+    box-sizing: border-box;
+
+    background-color: rgb(43, 43, 43);
+}
+#service-selector .drag-target button::after {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
+#service-last-drag-position:not(.hidden):not(.drag-target) {
+    display: block;
+    padding: 16px 4px;
+    background-color: #fff5;
+}
+#service-last-drag-position:not(.drag-target)::after {
+    content: "";
+    display: block;
+    border-bottom: 1px solid #fff;
+}
+
+#service-selector .drag-target::after {
+    top: 75% !important;
+}
+
 *:focus {
     outline-color: rgb(118, 93, 176);
 }

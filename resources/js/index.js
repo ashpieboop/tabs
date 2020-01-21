@@ -96,6 +96,19 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
         createService(i);
     }
 
+    // Init drag last position
+    const lastDragPosition = document.getElementById('service-last-drag-position');
+    lastDragPosition.addEventListener('dragover', () => {
+        const index = services.length;
+        if (draggedId !== index && draggedId !== index - 1) {
+            resetDrag();
+            lastDragTarget = dragTargetId = index;
+            lastDragPosition.classList.remove('hidden');
+            lastDragPosition.classList.add('drag-target');
+        }
+    });
+
+    // Set active service
     if (actualSelectedService < 0 || actualSelectedService >= services.length) {
         actualSelectedService = 0;
     }
@@ -127,6 +140,31 @@ ipcRenderer.on('updateService', (e, id, data) => {
             setActiveService(id);
         }
     }
+});
+
+ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
+    const oldServices = services;
+    services = [];
+
+    for (let i = 0; i < targetId; i++) {
+        if (i !== serviceId) {
+            services.push(oldServices[i]);
+        }
+    }
+    services.push(oldServices[serviceId]);
+    const newId = services.length - 1;
+    for (let i = targetId; i < oldServices.length; i++) {
+        if (i !== serviceId) {
+            services.push(oldServices[i]);
+        }
+    }
+
+    document.getElementById('service-selector').innerHTML = '';
+    for (let i = 0; i < services.length; i++) {
+        services[i].li = undefined;
+        createService(i);
+    }
+    setActiveService(newId);
 });
 
 ipcRenderer.on('deleteService', (e, id) => {
@@ -199,6 +237,55 @@ function createService(index, nextNavButton) {
     if (service.autoLoad) {
         loadService(index, service);
     }
+
+    initDrag(index, li);
+}
+
+let draggedId;
+let lastDragTarget = -1;
+let dragTargetId = -1;
+let dragTargetCount = 0;
+
+function initDrag(index, li) {
+    li.serviceId = index;
+    li.draggable = true;
+    li.addEventListener('dragstart', (event) => {
+        draggedId = index;
+        event.dataTransfer.dropEffect = 'move';
+        document.getElementById('service-last-drag-position').classList.remove('hidden');
+    });
+    li.addEventListener('dragover', () => {
+        if (draggedId !== index && draggedId !== index - 1) {
+            resetDrag();
+            lastDragTarget = dragTargetId = index;
+            document.getElementById('service-last-drag-position').classList.remove('hidden');
+            li.classList.add('drag-target');
+        }
+    });
+    li.addEventListener('dragend', () => {
+        reorderService(draggedId, lastDragTarget);
+        resetDrag();
+    });
+}
+
+function resetDrag() {
+    lastDragTarget = -1;
+    dragTargetId = -1;
+    dragTargetCount = 0;
+    document.getElementById('service-selector').querySelectorAll('li').forEach(li => {
+        li.classList.remove('drag-target');
+    });
+    const lastDragPosition = document.getElementById('service-last-drag-position');
+    lastDragPosition.classList.remove('drag-target');
+    lastDragPosition.classList.add('hidden');
+}
+
+function reorderService(serviceId, targetId) {
+    console.log('Reordering service', serviceId, targetId);
+    if (targetId >= 0) {
+        setActiveService(null);
+        ipcRenderer.send('reorderService', serviceId, targetId);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -215,7 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function setActiveService(serviceId) {
     const currentService = services[serviceId];
     process.nextTick(() => {
-        loadService(serviceId, currentService);
+        if (currentService) {
+            loadService(serviceId, currentService);
+        }
 
         // Hide previous service
         if (services[selectedService] && services[selectedService].view) {
@@ -223,7 +312,9 @@ function setActiveService(serviceId) {
         }
 
         // Show service
-        currentService.view.classList.add('active');
+        if (currentService) {
+            currentService.view.classList.add('active');
+        }
 
         // Save active service ID
         selectedService = serviceId;
