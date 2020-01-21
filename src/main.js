@@ -177,6 +177,7 @@ function createWindow() {
         }
 
         e.reply('reorderService', serviceId, targetId);
+        config.save();
     });
 
     ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
