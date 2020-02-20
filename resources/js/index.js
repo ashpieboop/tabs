@@ -439,7 +439,7 @@ function updateNavigation() {
 function updateWindowTitle() {
     if (selectedService === null) {
         ipcRenderer.send('updateWindowTitle', null);
-    } else if(services[selectedService].viewReady) {
+    } else if (services[selectedService].viewReady) {
         ipcRenderer.send('updateWindowTitle', selectedService, services[selectedService].view.getWebContents().getTitle());
     }
 }

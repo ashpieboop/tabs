@@ -34,17 +34,20 @@ body {
 
     background-color: rgb(43, 43, 43);
 }
+
 #service-selector .drag-target button::after {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
 }
+
 #service-last-drag-position:not(.hidden):not(.drag-target) {
     display: block;
     padding: 16px 4px;
     background-color: #fff5;
 }
+
 #service-last-drag-position:not(.drag-target)::after {
     content: "";
     display: block;
