@@ -194,7 +194,7 @@ function createWindow() {
 
 function sendData() {
     console.log('Syncing data');
-    window.webContents.send('data', Meta.title, brandIcons, solidIcons, config.services, selectedService);
+    window.webContents.send('data', Meta.title, brandIcons, solidIcons, config.services, selectedService, path.resolve(resourcesDir, 'empty.html'));
 }
 
 function setActiveService(index) {

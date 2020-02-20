@@ -35,6 +35,7 @@ Service.requiredProperties = {
     'useFavicon': true,
     'autoLoad': false,
     'customCSS': null,
+    'customUserAgent': null,
 };
 
 export default Service;
