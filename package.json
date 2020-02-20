@@ -9,7 +9,6 @@
   "homepage": "https://gitlab.com/ArisuOngaku/tabs",
   "license": "MIT",
   "main": "tabs.js",
-  "type": "module",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",

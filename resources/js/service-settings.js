@@ -47,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ipcRenderer.send('sync-settings');
+
+    document.getElementById('userAgentAutoFill').addEventListener('click', () => {
+        document.getElementById('custom-user-agent').value = 'Mozilla/5.0 (X11; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0';
+    });
 });
 
 function updateIconSearchResults() {
@@ -120,6 +124,7 @@ function loadServiceValues() {
     document.getElementById('use-favicon').checked = service.useFavicon;
     document.getElementById('auto-load').checked = service.autoLoad;
     document.getElementById('custom-css').value = service.customCSS;
+    document.getElementById('custom-user-agent').value = service.customUserAgent;
 
     isImageCheckbox.checked = service.isImage;
     if (service.isImage) {
@@ -148,6 +153,8 @@ function save() {
     service.autoLoad = formData.get('autoLoad') === 'on';
     service.customCSS = formData.get('customCSS');
 
+    let customUserAgent = formData.get('customUserAgent').trim();
+    service.customUserAgent = customUserAgent.length === 0 ? null : customUserAgent;
 
     if (!isValid()) {
         return;

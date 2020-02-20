@@ -16,6 +16,7 @@ let selectedService = null;
 let forwardButton;
 let backButton;
 let addButton;
+let emptyPage;
 
 
 // Service context menu
@@ -69,7 +70,7 @@ function openServiceContextMenu(event, serviceId) {
 }
 
 
-ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, actualSelectedService) => {
+ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, actualSelectedService, emptyUrl) => {
     // App info
     appInfo.title = appData.title;
 
@@ -113,6 +114,9 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
         actualSelectedService = 0;
     }
     setActiveService(actualSelectedService);
+
+    // Empty
+    emptyPage = emptyUrl;
 });
 
 ipcRenderer.on('updateService', (e, id, data) => {
@@ -331,29 +335,40 @@ function loadService(serviceId, service) {
 
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view = document.createElement('webview');
-        service.view.setAttribute('src', service.url);
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
         service.view.setAttribute('preload', 'js/service-webview.js');
+        service.view.setAttribute('src', emptyPage);
 
         // Append element to DOM
         document.querySelector('#services').appendChild(service.view);
 
-        // On load event
-        service.view.addEventListener('dom-ready', () => {
-            if (service.customCSS) {
-                service.view.insertCSS(service.customCSS);
+        // Load chain
+        let listener;
+        service.view.addEventListener('dom-ready', listener = () => {
+            service.view.removeEventListener('dom-ready', listener);
+
+            service.view.addEventListener('dom-ready', listener = () => {
+                if (service.customCSS) {
+                    service.view.insertCSS(service.customCSS);
+                }
+
+                document.querySelector('#services > .loader').classList.add('hidden');
+                service.li.classList.add('loaded');
+                service.viewReady = true;
+
+                updateNavigation();
+
+                if (selectedService === null) {
+                    setActiveService(serviceId);
+                }
+            });
+
+            if (typeof service.customUserAgent === 'string') {
+                let webContents = remote.webContents.fromId(service.view.getWebContentsId());
+                webContents.setUserAgent(service.customUserAgent);
             }
-
-            document.querySelector('#services > .loader').classList.add('hidden');
-            service.li.classList.add('loaded');
-            service.viewReady = true;
-
-            updateNavigation();
-
-            if (selectedService === null) {
-                setActiveService(serviceId);
-            }
+            service.view.setAttribute('src', service.url);
         });
 
         // Load favicon
@@ -440,16 +455,16 @@ function updateWindowTitle() {
     if (selectedService === null) {
         ipcRenderer.send('updateWindowTitle', null);
     } else if (services[selectedService].viewReady) {
-        ipcRenderer.send('updateWindowTitle', selectedService, services[selectedService].view.getWebContents().getTitle());
+        ipcRenderer.send('updateWindowTitle', selectedService, remote.webContents.fromId(services[selectedService].view.getWebContentsId()).getTitle());
     }
 }
 
 function goForward() {
     let view = services[selectedService].view;
-    if (view) view.getWebContents().goForward();
+    if (view) remote.webContents.fromId(view.getWebContentsId()).goForward();
 }
 
 function goBack() {
     let view = services[selectedService].view;
-    if (view) view.getWebContents().goBack();
+    if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
 }
