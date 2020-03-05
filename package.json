@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "ejs": "^3.0.1",
-    "electron-updater": "^2.2.4",
+    "electron-updater": "^4.2.4",
     "esm": "^3.2.25",
     "single-instance": "^0.0.1"
   },
