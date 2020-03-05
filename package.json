@@ -30,22 +30,46 @@
   "build": {
     "appId": "tabs-app",
     "linux": {
-      "target": [
-        "dir"
-      ],
-      "executableName": "tabs",
+      "target": "deb",
+      "icon": "resources/logo.png",
       "category": "Utility",
+      "executableName": "tabs",
       "desktop": {
         "StartupWMClass": "Tabs",
         "MimeType": "x-scheme-handler/tabs"
-      }
+      },
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "ArisuOngaku",
+          "repo": "tabs"
+        }
+      ]
     },
     "win": {
       "target": "nsis",
       "icon": "resources/logo.png",
       "publisherName": "Alice Gaudon",
       "verifyUpdateCodeSignature": "true",
-      "publish": ["github"]
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "ArisuOngaku",
+          "repo": "tabs"
+        }
+      ]
+    },
+    "mac": {
+      "target": "default",
+      "icon": "resources/logo.png",
+      "category": "public.app-category.utilities",
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "ArisuOngaku",
+          "repo": "tabs"
+        }
+      ]
     },
     "electronVersion": "8.0.3"
   }
