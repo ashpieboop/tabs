@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Persistent and separate browser tabs in one window",
   "author": {
     "name": "Alice Gaudon",
@@ -14,17 +14,17 @@
     "dev": "electron . --dev",
     "build": "electron-builder",
     "build-arch": "electron-builder --linux dir",
-    "pack": "electron-builder --dir",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "ejs": "^3.0.1",
+    "electron-updater": "^2.2.4",
     "esm": "^3.2.25",
     "single-instance": "^0.0.1"
   },
   "devDependencies": {
-    "electron": "^8.0.1",
-    "electron-builder": "^21.2.0"
+    "electron": "^8.0.3",
+    "electron-builder": "^22.4.0"
   },
   "build": {
     "appId": "tabs-app",
@@ -39,7 +39,13 @@
         "MimeType": "x-scheme-handler/tabs"
       }
     },
-    "electronDist": "/usr/lib/electron",
-    "electronVersion": "6.0.10"
+    "win": {
+      "target": "nsis",
+      "icon": "resources/logo.png",
+      "publisherName": "Alice Gaudon",
+      "verifyUpdateCodeSignature": "true",
+      "publish": ["github"]
+    },
+    "electronVersion": "8.0.3"
   }
 }
