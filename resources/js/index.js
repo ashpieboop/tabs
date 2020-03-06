@@ -17,6 +17,7 @@ let forwardButton;
 let backButton;
 let addButton;
 let emptyPage;
+let urlPreview;
 
 
 // Service context menu
@@ -117,6 +118,16 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
 
     // Empty
     emptyPage = emptyUrl;
+
+    // Url preview element
+    urlPreview = document.getElementById("url-preview");
+    urlPreview.addEventListener('mouseover', () => {
+        if (urlPreview.classList.contains('right')) {
+            urlPreview.classList.remove('right');
+        } else {
+            urlPreview.classList.add('right');
+        }
+    });
 });
 
 function removeServiceFeatures(id) {
@@ -380,6 +391,16 @@ function loadService(serviceId, service) {
                         service.li.button.appendChild(img);
                     };
                 }
+            }
+        });
+
+        // Display target urls
+        service.view.addEventListener('update-target-url', (event) => {
+            if (event.url.length === 0) {
+                urlPreview.classList.add('hidden');
+            } else {
+                urlPreview.classList.remove('hidden');
+                urlPreview.innerHTML = event.url;
             }
         });
     }
