@@ -144,6 +144,7 @@ function createWindow() {
             config.services[id] = newService;
         } else {
             config.services.push(newService);
+            id = config.services.indexOf(newService);
         }
         config.save();
 

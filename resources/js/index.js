@@ -119,27 +119,34 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
     emptyPage = emptyUrl;
 });
 
+function removeServiceFeatures(id) {
+    const nav = document.querySelector('#service-selector');
+
+    // Remove nav
+    const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
+    if (oldNavButton) {
+        nav.removeChild(oldNavButton);
+    }
+
+    // Remove webview
+    if (services[id] && services[id].view) {
+        const serviceContainer = document.querySelector('#services');
+        serviceContainer.removeChild(services[id].view);
+    }
+
+    return oldNavButton;
+}
+
 ipcRenderer.on('updateService', (e, id, data) => {
     if (id === null) {
         services.push(data);
         createService(services.length - 1);
     } else {
-        const nav = document.querySelector('#service-selector');
-
-        // Remove nav
-        const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
-        const nextNavButton = oldNavButton.nextSibling;
-        nav.removeChild(oldNavButton);
-
-        // Remove webview
-        if (services[id].view) {
-            const serviceContainer = document.querySelector('#services');
-            serviceContainer.removeChild(services[id].view);
-        }
+        const oldNavButton = removeServiceFeatures(id);
 
         // Create new service
         services[id] = data;
-        createService(id, nextNavButton);
+        createService(id, oldNavButton ? oldNavButton.nextSibling : null);
         if (parseInt(selectedService) === id) {
             setActiveService(id);
         }
@@ -172,19 +179,7 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
 });
 
 ipcRenderer.on('deleteService', (e, id) => {
-    const nav = document.querySelector('#service-selector');
-
-    // Remove nav
-    const navButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
-    if (navButton) {
-        nav.removeChild(navButton);
-    }
-
-    // Remove webview
-    if (services[id].view) {
-        const serviceContainer = document.querySelector('#services');
-        serviceContainer.removeChild(services[id].view);
-    }
+    removeServiceFeatures(id);
 
     if (parseInt(selectedService) === id) {
         setActiveService(0);
