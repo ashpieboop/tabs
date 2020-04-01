@@ -1,6 +1,8 @@
 const {
     remote,
     ipcRenderer,
+    clipboard,
+    shell,
 } = require('electron');
 const {
     Menu,
@@ -342,9 +344,9 @@ function loadService(serviceId, service) {
 
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view = document.createElement('webview');
+        service.view.setAttribute('enableRemoteModule', 'false');
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
-        service.view.setAttribute('preload', 'js/service-webview.js');
         service.view.setAttribute('src', emptyPage);
 
         // Append element to DOM
@@ -371,11 +373,15 @@ function loadService(serviceId, service) {
                 }
             });
 
+            const webContents = remote.webContents.fromId(service.view.getWebContentsId());
+
             // Set custom user agent
             if (typeof service.customUserAgent === 'string') {
-                let webContents = remote.webContents.fromId(service.view.getWebContentsId());
                 webContents.setUserAgent(service.customUserAgent);
             }
+
+            // Set context menu
+            setContextMenu(webContents);
 
             // Set permission request handler
             session.fromPartition(service.view.partition)
@@ -506,4 +512,129 @@ function goForward() {
 function goBack() {
     let view = services[selectedService].view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
+}
+
+function setContextMenu(webContents) {
+    webContents.on('context-menu', (event, props) => {
+        const menu = new Menu();
+        const {editFlags} = props;
+
+        // linkURL
+        if (props.linkURL.length > 0) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Copy link URL',
+                click: () => {
+                    clipboard.writeText(props.linkURL);
+                },
+            }));
+            menu.append(new MenuItem({
+                label: 'Open URL in default browser',
+                click: () => {
+                    if (props.linkURL.startsWith('https://')) {
+                        shell.openExternal(props.linkURL);
+                    }
+                },
+            }));
+        }
+
+        // Image
+        if (props.hasImageContents) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Copy image',
+                click: () => {
+                    webContents.copyImageAt(props.x, props.y);
+                },
+            }));
+
+            menu.append(new MenuItem({
+                label: 'Save image as',
+                click: () => {
+                    webContents.downloadURL(props.srcURL);
+                },
+            }));
+        }
+
+        // Text clipboard
+        if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste || editFlags.canDelete) {
+            if (editFlags.canUndo || editFlags.canRedo) {
+                if (menu.items.length > 0) {
+                    menu.append(new MenuItem({type: 'separator'}));
+                }
+
+                if (editFlags.canUndo) {
+                    menu.append(new MenuItem({
+                        label: 'Undo',
+                        role: 'undo',
+                    }));
+                }
+                if (editFlags.canRedo) {
+                    menu.append(new MenuItem({
+                        label: 'Redo',
+                        role: 'redo',
+                    }));
+                }
+            }
+
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Cut',
+                role: 'cut',
+                enabled: editFlags.canCut,
+            }));
+            menu.append(new MenuItem({
+                label: 'Copy',
+                role: 'copy',
+                enabled: editFlags.canCopy,
+            }));
+            menu.append(new MenuItem({
+                label: 'Paste',
+                role: 'paste',
+                enabled: editFlags.canPaste,
+            }));
+            menu.append(new MenuItem({
+                label: 'Delete',
+                role: 'delete',
+                enabled: editFlags.canDelete,
+            }));
+        }
+
+        if (editFlags.canSelectAll) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Select all',
+                role: 'selectAll',
+            }));
+        }
+
+        // Inspect element
+        if (menu.items.length > 0) {
+            menu.append(new MenuItem({type: 'separator'}));
+        }
+
+        menu.append(new MenuItem({
+            label: 'Inspect element',
+            click: () => {
+                webContents.inspectElement(props.x, props.y);
+            },
+        }));
+
+
+        menu.popup({
+            window: remote.getCurrentWindow(),
+        });
+    });
 }
