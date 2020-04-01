@@ -179,11 +179,11 @@ body {
     flex-grow: 1;
 }
 
-#services > *:not(.loader) {
+#services > *:not(.loader):not(#url-preview) {
     height: 100%;
 }
 
-#services > :not(.active):not(.loader) {
+#services > :not(.active):not(.loader):not(#url-preview) {
     display: none;
 }
 
@@ -196,4 +196,41 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: -1;
+}
+
+#url-preview {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: block;
+    padding: 2px 5px 1px 5px;
+
+    max-width: 48%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    font-family: monospace;
+
+    border-width: 1px 1px 0 0;
+    border-color: #232323;
+    border-style: solid;
+    border-radius: 0 5px 0 0;
+
+    background: #2b2b2b;
+
+    opacity: 1;
+    transition: 100ms ease opacity;
+    transition-delay: 200ms;
+}
+
+#url-preview.right {
+    left: auto;
+    right: 0;
+
+    border-width: 1px 0 0 1px;
+    border-radius: 5px 0 0 0;
+}
+
+#url-preview.hidden {
+    opacity: 0;
 }

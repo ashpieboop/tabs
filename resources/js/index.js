@@ -1,11 +1,14 @@
 const {
     remote,
     ipcRenderer,
+    clipboard,
+    shell,
 } = require('electron');
 const {
     Menu,
     MenuItem,
     dialog,
+    session,
 } = remote;
 
 const appInfo = {};
@@ -17,6 +20,7 @@ let forwardButton;
 let backButton;
 let addButton;
 let emptyPage;
+let urlPreview;
 
 
 // Service context menu
@@ -117,29 +121,46 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
 
     // Empty
     emptyPage = emptyUrl;
+
+    // Url preview element
+    urlPreview = document.getElementById("url-preview");
+    urlPreview.addEventListener('mouseover', () => {
+        if (urlPreview.classList.contains('right')) {
+            urlPreview.classList.remove('right');
+        } else {
+            urlPreview.classList.add('right');
+        }
+    });
 });
+
+function removeServiceFeatures(id) {
+    const nav = document.querySelector('#service-selector');
+
+    // Remove nav
+    const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
+    if (oldNavButton) {
+        nav.removeChild(oldNavButton);
+    }
+
+    // Remove webview
+    if (services[id] && services[id].view) {
+        const serviceContainer = document.querySelector('#services');
+        serviceContainer.removeChild(services[id].view);
+    }
+
+    return oldNavButton;
+}
 
 ipcRenderer.on('updateService', (e, id, data) => {
     if (id === null) {
         services.push(data);
         createService(services.length - 1);
     } else {
-        const nav = document.querySelector('#service-selector');
-
-        // Remove nav
-        const oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
-        const nextNavButton = oldNavButton.nextSibling;
-        nav.removeChild(oldNavButton);
-
-        // Remove webview
-        if (services[id].view) {
-            const serviceContainer = document.querySelector('#services');
-            serviceContainer.removeChild(services[id].view);
-        }
+        const oldNavButton = removeServiceFeatures(id);
 
         // Create new service
         services[id] = data;
-        createService(id, nextNavButton);
+        createService(id, oldNavButton ? oldNavButton.nextSibling : null);
         if (parseInt(selectedService) === id) {
             setActiveService(id);
         }
@@ -172,19 +193,7 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
 });
 
 ipcRenderer.on('deleteService', (e, id) => {
-    const nav = document.querySelector('#service-selector');
-
-    // Remove nav
-    const navButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
-    if (navButton) {
-        nav.removeChild(navButton);
-    }
-
-    // Remove webview
-    if (services[id].view) {
-        const serviceContainer = document.querySelector('#services');
-        serviceContainer.removeChild(services[id].view);
-    }
+    removeServiceFeatures(id);
 
     if (parseInt(selectedService) === id) {
         setActiveService(0);
@@ -335,9 +344,9 @@ function loadService(serviceId, service) {
 
         document.querySelector('#services > .loader').classList.remove('hidden');
         service.view = document.createElement('webview');
+        service.view.setAttribute('enableRemoteModule', 'false');
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
-        service.view.setAttribute('preload', 'js/service-webview.js');
         service.view.setAttribute('src', emptyPage);
 
         // Append element to DOM
@@ -364,10 +373,36 @@ function loadService(serviceId, service) {
                 }
             });
 
+            const webContents = remote.webContents.fromId(service.view.getWebContentsId());
+
+            // Set custom user agent
             if (typeof service.customUserAgent === 'string') {
-                let webContents = remote.webContents.fromId(service.view.getWebContentsId());
                 webContents.setUserAgent(service.customUserAgent);
             }
+
+            // Set context menu
+            setContextMenu(webContents);
+
+            // Set permission request handler
+            session.fromPartition(service.view.partition)
+                .setPermissionRequestHandler(((webContents, permission, callback, details) => {
+                    dialog.showMessageBox(remote.getCurrentWindow(), {
+                        type: 'question',
+                        title: 'Grant ' + permission + ' permission',
+                        message: 'Do you wish to grant the ' + permission + ' permission to ' + details.requestingUrl + '?',
+                        buttons: ['Deny', 'Authorize'],
+                        cancelId: 0,
+                    }).then(result => {
+                        if (result.response === 1) {
+                            console.log('Granted', permission, 'for service', details.requestingUrl);
+                            callback(true);
+                        } else {
+                            console.log('Denied', permission, 'for service', details.requestingUrl);
+                            callback(false);
+                        }
+                    }).catch(console.error);
+                }));
+
             service.view.setAttribute('src', service.url);
         });
 
@@ -385,6 +420,16 @@ function loadService(serviceId, service) {
                         service.li.button.appendChild(img);
                     };
                 }
+            }
+        });
+
+        // Display target urls
+        service.view.addEventListener('update-target-url', (event) => {
+            if (event.url.length === 0) {
+                urlPreview.classList.add('hidden');
+            } else {
+                urlPreview.classList.remove('hidden');
+                urlPreview.innerHTML = event.url;
             }
         });
     }
@@ -467,4 +512,129 @@ function goForward() {
 function goBack() {
     let view = services[selectedService].view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
+}
+
+function setContextMenu(webContents) {
+    webContents.on('context-menu', (event, props) => {
+        const menu = new Menu();
+        const {editFlags} = props;
+
+        // linkURL
+        if (props.linkURL.length > 0) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Copy link URL',
+                click: () => {
+                    clipboard.writeText(props.linkURL);
+                },
+            }));
+            menu.append(new MenuItem({
+                label: 'Open URL in default browser',
+                click: () => {
+                    if (props.linkURL.startsWith('https://')) {
+                        shell.openExternal(props.linkURL);
+                    }
+                },
+            }));
+        }
+
+        // Image
+        if (props.hasImageContents) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Copy image',
+                click: () => {
+                    webContents.copyImageAt(props.x, props.y);
+                },
+            }));
+
+            menu.append(new MenuItem({
+                label: 'Save image as',
+                click: () => {
+                    webContents.downloadURL(props.srcURL);
+                },
+            }));
+        }
+
+        // Text clipboard
+        if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste || editFlags.canDelete) {
+            if (editFlags.canUndo || editFlags.canRedo) {
+                if (menu.items.length > 0) {
+                    menu.append(new MenuItem({type: 'separator'}));
+                }
+
+                if (editFlags.canUndo) {
+                    menu.append(new MenuItem({
+                        label: 'Undo',
+                        role: 'undo',
+                    }));
+                }
+                if (editFlags.canRedo) {
+                    menu.append(new MenuItem({
+                        label: 'Redo',
+                        role: 'redo',
+                    }));
+                }
+            }
+
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Cut',
+                role: 'cut',
+                enabled: editFlags.canCut,
+            }));
+            menu.append(new MenuItem({
+                label: 'Copy',
+                role: 'copy',
+                enabled: editFlags.canCopy,
+            }));
+            menu.append(new MenuItem({
+                label: 'Paste',
+                role: 'paste',
+                enabled: editFlags.canPaste,
+            }));
+            menu.append(new MenuItem({
+                label: 'Delete',
+                role: 'delete',
+                enabled: editFlags.canDelete,
+            }));
+        }
+
+        if (editFlags.canSelectAll) {
+            if (menu.items.length > 0) {
+                menu.append(new MenuItem({type: 'separator'}));
+            }
+
+            menu.append(new MenuItem({
+                label: 'Select all',
+                role: 'selectAll',
+            }));
+        }
+
+        // Inspect element
+        if (menu.items.length > 0) {
+            menu.append(new MenuItem({type: 'separator'}));
+        }
+
+        menu.append(new MenuItem({
+            label: 'Inspect element',
+            click: () => {
+                webContents.inspectElement(props.x, props.y);
+            },
+        }));
+
+
+        menu.popup({
+            window: remote.getCurrentWindow(),
+        });
+    });
 }
