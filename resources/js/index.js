@@ -6,6 +6,7 @@ const {
     Menu,
     MenuItem,
     dialog,
+    session,
 } = remote;
 
 const appInfo = {};
@@ -370,10 +371,32 @@ function loadService(serviceId, service) {
                 }
             });
 
+            // Set custom user agent
             if (typeof service.customUserAgent === 'string') {
                 let webContents = remote.webContents.fromId(service.view.getWebContentsId());
                 webContents.setUserAgent(service.customUserAgent);
             }
+
+            // Set permission request handler
+            session.fromPartition(service.view.partition)
+                .setPermissionRequestHandler(((webContents, permission, callback, details) => {
+                    dialog.showMessageBox(remote.getCurrentWindow(), {
+                        type: 'question',
+                        title: 'Grant ' + permission + ' permission',
+                        message: 'Do you wish to grant the ' + permission + ' permission to ' + details.requestingUrl + '?',
+                        buttons: ['Deny', 'Authorize'],
+                        cancelId: 0,
+                    }).then(result => {
+                        if (result.response === 1) {
+                            console.log('Granted', permission, 'for service', details.requestingUrl);
+                            callback(true);
+                        } else {
+                            console.log('Denied', permission, 'for service', details.requestingUrl);
+                            callback(false);
+                        }
+                    }).catch(console.error);
+                }));
+
             service.view.setAttribute('src', service.url);
         });
 
