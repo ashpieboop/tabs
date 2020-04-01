@@ -36,6 +36,7 @@ Service.requiredProperties = {
     'autoLoad': false,
     'customCSS': null,
     'customUserAgent': null,
+    'permissions': {},
 };
 
 export default Service;
