@@ -77,7 +77,9 @@ function createWindow() {
             console.log('Setting external links to open in default OS browser');
             contents.on('new-window', (e, url) => {
                 e.preventDefault();
-                shell.openExternal(url);
+                if (url.startsWith('https://')) {
+                    shell.openExternal(url);
+                }
             });
         }
     });
