@@ -49,7 +49,51 @@ function openServiceContextMenu(event, serviceId) {
         },
         enabled: ready,
     }));
+
     menu.append(new MenuItem({type: "separator"}));
+
+    let permissionsMenu = [];
+    if (ready) {
+        for (const domain in service.permissions) {
+            if (service.permissions.hasOwnProperty(domain)) {
+                const domainPermissionsMenu = [];
+
+                const domainPermissions = service.permissions[domain];
+                for (const permission of domainPermissions) {
+                    domainPermissionsMenu.push({
+                        label: (permission.authorized ? '✓' : '❌') + ' ' + permission.name,
+                        submenu: [{
+                            label: 'Toggle',
+                            click: () => {
+                                permission.authorized = !permission.authorized;
+                                updateServicePermissions(serviceId);
+                            },
+                        }, {
+                            label: 'Forget',
+                            click: () => {
+                                service.permissions[domain] = domainPermissions.filter(p => p !== permission);
+                            },
+                        }],
+                    });
+                }
+
+                if (domainPermissionsMenu.length > 0) {
+                    permissionsMenu.push({
+                        label: domain,
+                        submenu: domainPermissionsMenu,
+                    });
+                }
+            }
+        }
+    }
+    menu.append(new MenuItem({
+        label: 'Permissions',
+        enabled: ready,
+        submenu: permissionsMenu,
+    }));
+
+    menu.append(new MenuItem({type: "separator"}));
+
     menu.append(new MenuItem({
         label: 'Edit', click: () => {
             ipcRenderer.send('openServiceSettings', serviceId);
