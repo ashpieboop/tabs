@@ -183,6 +183,11 @@ function createWindow() {
         config.save();
     });
 
+    ipcMain.on('updateServicePermissions', (e, serviceId, permissions) => {
+        config.services[serviceId].permissions = permissions;
+        config.save();
+    });
+
     ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
         if (serviceId === null) {
             window.setTitle(Meta.title);

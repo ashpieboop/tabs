@@ -49,7 +49,51 @@ function openServiceContextMenu(event, serviceId) {
         },
         enabled: ready,
     }));
+
     menu.append(new MenuItem({type: "separator"}));
+
+    let permissionsMenu = [];
+    if (ready) {
+        for (const domain in service.permissions) {
+            if (service.permissions.hasOwnProperty(domain)) {
+                const domainPermissionsMenu = [];
+
+                const domainPermissions = service.permissions[domain];
+                for (const permission of domainPermissions) {
+                    domainPermissionsMenu.push({
+                        label: (permission.authorized ? '✓' : '❌') + ' ' + permission.name,
+                        submenu: [{
+                            label: 'Toggle',
+                            click: () => {
+                                permission.authorized = !permission.authorized;
+                                updateServicePermissions(serviceId);
+                            },
+                        }, {
+                            label: 'Forget',
+                            click: () => {
+                                service.permissions[domain] = domainPermissions.filter(p => p !== permission);
+                            },
+                        }],
+                    });
+                }
+
+                if (domainPermissionsMenu.length > 0) {
+                    permissionsMenu.push({
+                        label: domain,
+                        submenu: domainPermissionsMenu,
+                    });
+                }
+            }
+        }
+    }
+    menu.append(new MenuItem({
+        label: 'Permissions',
+        enabled: ready,
+        submenu: permissionsMenu,
+    }));
+
+    menu.append(new MenuItem({type: "separator"}));
+
     menu.append(new MenuItem({
         label: 'Edit', click: () => {
             ipcRenderer.send('openServiceSettings', serviceId);
@@ -384,24 +428,56 @@ function loadService(serviceId, service) {
             setContextMenu(webContents);
 
             // Set permission request handler
-            session.fromPartition(service.view.partition)
-                .setPermissionRequestHandler(((webContents, permission, callback, details) => {
-                    dialog.showMessageBox(remote.getCurrentWindow(), {
-                        type: 'question',
-                        title: 'Grant ' + permission + ' permission',
-                        message: 'Do you wish to grant the ' + permission + ' permission to ' + details.requestingUrl + '?',
-                        buttons: ['Deny', 'Authorize'],
-                        cancelId: 0,
-                    }).then(result => {
-                        if (result.response === 1) {
-                            console.log('Granted', permission, 'for service', details.requestingUrl);
-                            callback(true);
-                        } else {
-                            console.log('Denied', permission, 'for service', details.requestingUrl);
-                            callback(false);
-                        }
-                    }).catch(console.error);
-                }));
+            function getUrlDomain(url) {
+                let domain = url.match(/^https?:\/\/((.+?)\/|(.+))/i)[1];
+                if (domain.endsWith('/')) domain = domain.substr(0, domain.length - 1);
+                return domain;
+            }
+
+            function getDomainPermissions(domain) {
+                let domainPermissions = service.permissions[domain];
+                if (!domainPermissions) domainPermissions = service.permissions[domain] = [];
+                return domainPermissions;
+            }
+
+            let serviceSession = session.fromPartition(service.view.partition);
+            serviceSession.setPermissionRequestHandler(((webContents, permissionName, callback, details) => {
+                let domain = getUrlDomain(details.requestingUrl);
+                let domainPermissions = getDomainPermissions(domain);
+
+                let existingPermissions = domainPermissions.filter(p => p.name === permissionName);
+                if (existingPermissions.length > 0) {
+                    callback(existingPermissions[0].authorized);
+                    return;
+                }
+
+                dialog.showMessageBox(remote.getCurrentWindow(), {
+                    type: 'question',
+                    title: 'Grant ' + permissionName + ' permission',
+                    message: 'Do you wish to grant the ' + permissionName + ' permission to ' + domain + '?',
+                    buttons: ['Deny', 'Authorize'],
+                    cancelId: 0,
+                }).then(result => {
+                    const authorized = result.response === 1;
+
+                    domainPermissions.push({
+                        name: permissionName,
+                        authorized: authorized,
+                    });
+                    updateServicePermissions(serviceId);
+
+                    console.log(authorized ? 'Granted' : 'Denied', permissionName, 'for domain', domain);
+                    callback(authorized);
+                }).catch(console.error);
+            }));
+            serviceSession.setPermissionCheckHandler((webContents1, permissionName, requestingOrigin, details) => {
+                console.log('Permission check', permissionName, requestingOrigin, details);
+                let domain = getUrlDomain(details.requestingUrl);
+                let domainPermissions = getDomainPermissions(domain);
+
+                let existingPermissions = domainPermissions.filter(p => p.name === permissionName);
+                return existingPermissions.length > 0 && existingPermissions[0].authorized;
+            });
 
             service.view.setAttribute('src', service.url);
         });
@@ -467,6 +543,11 @@ function reloadService(serviceId) {
     } else if (!service.view && !service.viewReady) {
         loadService(serviceId, service);
     }
+}
+
+function updateServicePermissions(serviceId) {
+    const service = services[serviceId];
+    ipcRenderer.send('updateServicePermissions', serviceId, service.permissions);
 }
 
 function updateNavigation() {
