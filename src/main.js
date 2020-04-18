@@ -5,7 +5,7 @@ import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
 import Meta from "./Meta";
 import Config from "./Config";
 import Service from "./Service";
-import { autoUpdater } from "electron-updater";
+import {autoUpdater} from "electron-updater";
 
 const resourcesDir = path.resolve(__dirname, '../resources');
 const iconPath = path.resolve(resourcesDir, 'logo.png');
@@ -36,11 +36,9 @@ function toggleMainWindow() {
     }
 }
 
-function createWindow() {
-    // Check for updates on windows and mac
-    if (process.platform === 'win32' || process.platform === 'darwin') {
-        autoUpdater.checkForUpdatesAndNotify();
-    }
+async function createWindow() {
+    // Check for updates
+    await autoUpdater.checkForUpdatesAndNotify();
 
     // System tray
     console.log('Loading system Tray');
@@ -229,4 +227,6 @@ function listIcons(set) {
 }
 
 console.log('Starting app');
-app.on('ready', createWindow);
+app.on('ready', () => {
+    createWindow().catch(console.error);
+});

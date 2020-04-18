@@ -14,7 +14,7 @@
     "dev": "electron . --dev",
     "build": "electron-builder",
     "build-arch": "electron-builder --linux dir",
-    "release": "electron-builder -mwlp always",
+    "release": "GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
