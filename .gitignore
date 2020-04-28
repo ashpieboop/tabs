@@ -3,3 +3,5 @@ node_modules/
 /config
 /dist
 GH_TOKEN
+
+yarn-error.log
