@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -14,7 +14,7 @@
     "dev": "electron . --dev",
     "build": "electron-builder",
     "build-arch": "electron-builder --linux dir",
-    "release": "electron-builder -mwlp always",
+    "release": "GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -71,6 +71,6 @@
         }
       ]
     },
-    "electronVersion": "8.2.3"
+    "electronVersion": "8.2.4"
   }
 }
