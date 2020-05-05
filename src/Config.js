@@ -30,7 +30,7 @@ export default class Config {
         }
 
         if (this.services.length === 0) {
-            this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://gitlab.com/ArisuOngaku/tabs', false));
+            this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://github.com/ArisuOngaku/tabs', false));
         }
 
         this.save();

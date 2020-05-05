@@ -3,11 +3,24 @@ body {
     flex-direction: row;
 }
 
+#navigation {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 48px;
+}
+
 #service-selector {
     flex-grow: 1;
     display: block;
     margin: 0;
     padding: 0;
+
+    overflow: hidden auto;
+}
+
+#service-selector::-webkit-scrollbar {
+    width: 6px;
 }
 
 #service-selector [draggable] {
@@ -21,14 +34,14 @@ body {
 }
 
 #service-selector .drag-target button {
-    height: 144px;
+    height: 56px;
     padding-top: 88px;
 }
 
 #service-selector .drag-target button::after,
 #service-last-drag-position.drag-target {
     content: "";
-    height: 72px;
+    height: 56px;
     border: 1px dashed #fff;
     box-sizing: border-box;
 
@@ -63,11 +76,12 @@ body {
 }
 
 #navigation button {
+    position: relative;
     display: block;
-    width: 100%;
-    padding: 16px;
+    width: 48px;
+    height: 48px;
     margin: 0;
-    height: 72px;
+    padding: 0;
 
     color: #fff;
     border: 0;
@@ -76,12 +90,17 @@ body {
     cursor: pointer;
 }
 
+#navigation button:focus {
+    outline-color: transparent;
+    background: #fff3 !important;
+}
+
 #navigation button img {
-    width: 32px;
+    width: 24px;
 }
 
 #navigation button i {
-    font-size: 32px;
+    font-size: 24px;
 }
 
 #service-selector li {
@@ -94,39 +113,39 @@ body {
 }
 
 #service-selector li.active button {
-    position: relative;
     background-color: #fff2;
 }
 
-#service-selector li.active button::before {
+#service-selector li.loaded button::before {
     content: "";
     display: block;
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    border-left: 4px solid #ffffff2e;
-}
-
-#service-selector li.loaded::after {
-    content: "";
-    position: absolute;
+    right: 0;
     top: 50%;
-    right: 2px;
     transform: translateY(-50%);
-    width: 4px;
-    height: 4px;
-
-    background-color: #fff;
-    border-radius: 100%;
+    height: 75%;
+    border-right: 4px solid #ffffff3e;
 }
+
+/*#service-selector li.loaded::after {*/
+/*    content: "";*/
+/*    position: absolute;*/
+/*    top: 50%;*/
+/*    right: 2px;*/
+/*    transform: translateY(-50%);*/
+/*    width: 4px;*/
+/*    height: 4px;*/
+
+/*    background-color: #fff;*/
+/*    border-radius: 100%;*/
+/*}*/
 
 #navigation button:hover {
     background-color: #fff3;
 }
 
 #history {
-    padding: 8px;
+    padding: 2px;
 }
 
 #history button {
@@ -137,8 +156,6 @@ body {
     font-size: 12px;
 
     background: #fff1;
-    border: 1px solid #fff4;
-    border-radius: 72px;
 
     color: #fff;
     cursor: pointer;
@@ -233,4 +250,17 @@ body {
 
 #url-preview.hidden {
     opacity: 0;
+}
+
+#services > #empty-message {
+    display: flex !important;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+#services > .loader:not(.hidden) ~ #empty-message {
+    display: none !important;
 }
