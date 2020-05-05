@@ -242,3 +242,16 @@ body {
 #url-preview.hidden {
     opacity: 0;
 }
+
+#services > #empty-message {
+    display: flex !important;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+#services > .loader:not(.hidden) ~ #empty-message {
+    display: none !important;
+}
