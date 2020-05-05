@@ -3,11 +3,19 @@ body {
     flex-direction: row;
 }
 
+#navigation {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 #service-selector {
     flex-grow: 1;
     display: block;
     margin: 0;
     padding: 0;
+
+    overflow-y: auto;
 }
 
 #service-selector [draggable] {

@@ -78,3 +78,21 @@ button:hover {
 .hidden {
     display: none;
 }
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+}
