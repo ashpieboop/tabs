@@ -38,17 +38,20 @@ body {
     user-drag: none;
 }
 
-#service-selector .drag-target:not(.drag-target-self) button {
-    height: 96px;
-    padding-top: 48px;
-}
-
 #service-selector .drag-target button::after,
 #service-last-drag-position.drag-target {
     content: "";
+    height: 4px;
+    transform: translateY(-50%);
+    border: 0;
+    box-sizing: border-box;
+    background: #fff9;
+}
+
+#service-selector .drag-target-self button::after {
     height: 48px;
     border: 1px dashed #fff;
-    box-sizing: border-box;
+    transform: none;
 }
 
 #service-selector .drag-target button::after {
@@ -56,18 +59,6 @@ body {
     left: 0;
     top: 0;
     width: 100%;
-}
-
-#service-last-drag-position:not(.hidden):not(.drag-target) {
-    display: block;
-    padding: 16px 4px;
-    background-color: #fff5;
-}
-
-#service-last-drag-position:not(.drag-target)::after {
-    content: "";
-    display: block;
-    border-bottom: 1px solid #fff;
 }
 
 #service-selector .drag-target::after {
