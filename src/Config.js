@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
-import {homedir} from "os";
+import getAppDataPath from "appdata-path";
 
 import Service from "./Service";
 import Meta from "./Meta";
 
-const configDir = Meta.isDevMode() ? path.resolve(homedir(), '.config/tabs-app-dev') : path.resolve(homedir(), '.config/tabs-app');
+const configDir = Meta.isDevMode() ? getAppDataPath('tabs-app-dev') : getAppDataPath('tabs-app');
 const configFile = path.resolve(configDir, 'config.json');
 
 export default class Config {
@@ -32,6 +32,8 @@ export default class Config {
         if (this.services.length === 0) {
             this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://github.com/ArisuOngaku/tabs', false));
         }
+
+        this.updateCheckSkip = data.updateCheckSkip;
 
         this.save();
     }

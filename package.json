@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -18,13 +18,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "appdata-path": "^1.0.0",
     "ejs": "^3.0.1",
     "electron-updater": "^4.2.4",
     "esm": "^3.2.25",
     "single-instance": "^0.0.1"
   },
   "devDependencies": {
-    "electron": "^8.2.0",
+    "electron": "^9.0.0",
     "electron-builder": "^22.4.0"
   },
   "build": {
@@ -71,6 +72,6 @@
         }
       ]
     },
-    "electronVersion": "8.2.5"
+    "electronVersion": "9.0.0"
   }
 }

@@ -18,12 +18,30 @@
 <body>
 <div id="navigation">
     <div id="history">
-        <button id="back"><i class="fas fa-arrow-left"></i></button>
+        <button id="status">
+            <i class="fas fa-question unknown active">
+                <span class="tip">Unknown protocol</span>
+            </i>
+            <i class="fas fa-lock https">
+                <span class="tip">Secured via TLS (https)</span>
+            </i>
+            <i class="fas fa-lock-open http">
+                <span class="tip">Vulnerable connection (http)</span>
+            </i>
+            <i class="fas fa-folder file">
+                <span class="tip">Local file</span>
+            </i>
+        </button>
+        <button id="home" class="disabled"><i class="fas fa-home"></i></button>
+        <button id="back" class="disabled"><i class="fas fa-arrow-left"></i></button>
         <button id="forward" class="disabled"><i class="fas fa-arrow-right"></i></button>
+        <button id="reload" class="disabled"><i class="fas fa-redo"></i></button>
     </div>
 
-    <ul id="service-selector"></ul>
-    <div id="service-last-drag-position" class="hidden"></div>
+    <div id="service-buttons">
+        <ul id="service-selector"></ul>
+        <div id="service-last-drag-position" class="hidden"></div>
+    </div>
 
     <button id="add-button"><i class="fa fa-plus"></i></button>
 

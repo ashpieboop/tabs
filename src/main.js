@@ -1,16 +1,17 @@
 import fs from "fs";
 import path from "path";
-import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
+import {app, BrowserWindow, dialog, ipcMain, Menu, shell, Tray} from "electron";
 
 import Meta from "./Meta";
 import Config from "./Config";
 import Service from "./Service";
-import {autoUpdater} from "electron-updater";
+import Updater from "./Updater";
 
 const resourcesDir = path.resolve(__dirname, '../resources');
 const iconPath = path.resolve(resourcesDir, 'logo.png');
 
 const config = new Config();
+const updater = new Updater();
 
 const devMode = Meta.isDevMode();
 
@@ -22,7 +23,7 @@ let selectedService = 0;
 
 let tray;
 let window;
-let serviceSettingsWindow;
+let serviceSettingsWindow, settingsWindow;
 
 function toggleMainWindow() {
     if (window != null) {
@@ -38,7 +39,31 @@ function toggleMainWindow() {
 
 async function createWindow() {
     // Check for updates
-    await autoUpdater.checkForUpdatesAndNotify();
+    updater.checkForUpdates((available, updateInfo) => {
+        if (available && updateInfo.version !== config.updateCheckSkip) {
+            dialog.showMessageBox(window, {
+                message: `Version ${updateInfo.version} of tabs is available. Do you wish to download this update?`,
+                buttons: [
+                    'Cancel',
+                    'Download',
+                ],
+                checkboxChecked: false,
+                checkboxLabel: `Don't remind me for this version`,
+                cancelId: 0,
+                defaultId: 1,
+                type: 'question'
+            }).then(e => {
+                if (e.checkboxChecked) {
+                    console.log('Skipping update check for version', updateInfo.version);
+                    config.updateCheckSkip = updateInfo.version;
+                    config.save();
+                }
+                if (e.response === 1) {
+                    return shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`);
+                }
+            }).catch(console.error);
+        }
+    });
 
     // System tray
     console.log('Loading system Tray');
@@ -198,6 +223,49 @@ async function createWindow() {
         } else {
             const service = config.services[serviceId];
             window.setTitle(Meta.getTitleForService(service, viewTitle));
+        }
+    });
+
+    // Open add service window
+    ipcMain.on('openSettings', (e) => {
+        if (!settingsWindow) {
+            console.log('Opening settings');
+            settingsWindow = new BrowserWindow({
+                webPreferences: {
+                    nodeIntegration: true,
+                    enableRemoteModule: true,
+                    webviewTag: true,
+                },
+                parent: window,
+                modal: true,
+                autoHideMenuBar: true,
+                height: 850,
+            });
+            settingsWindow.on('close', () => {
+                settingsWindow = null;
+            });
+            if (devMode) {
+                settingsWindow.webContents.openDevTools({
+                    mode: 'right'
+                });
+            }
+            let syncListener;
+            ipcMain.on('syncSettings', syncListener = () => {
+                settingsWindow.webContents.send('current-version', updater.getCurrentVersion());
+            });
+
+            let checkForUpdatesListener;
+            ipcMain.on('checkForUpdates', checkForUpdatesListener = (e) => {
+                updater.checkForUpdates((available, version) => {
+                    settingsWindow.webContents.send('updateStatus', available, version);
+                });
+            });
+            settingsWindow.on('close', () => {
+                ipcMain.removeListener('sync-settings', syncListener);
+                ipcMain.removeListener('checkForUpdates', checkForUpdatesListener);
+            });
+            settingsWindow.loadFile(path.resolve(resourcesDir, 'settings.html'))
+                .catch(console.error);
         }
     });
 

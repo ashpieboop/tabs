@@ -16,12 +16,13 @@ const icons = [];
 
 let services = [];
 let selectedService = null;
-let forwardButton;
-let backButton;
-let addButton;
+let statusButton, homeButton, forwardButton, backButton, reloadButton;
+let addButton, settingsButton;
 let emptyPage;
 let urlPreview;
 
+// Service reordering
+let lastDragPosition, oldActiveService;
 
 // Service context menu
 function openServiceContextMenu(event, serviceId) {
@@ -146,7 +147,7 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
     }
 
     // Init drag last position
-    const lastDragPosition = document.getElementById('service-last-drag-position');
+    lastDragPosition = document.getElementById('service-last-drag-position');
     lastDragPosition.addEventListener('dragover', () => {
         const index = services.length;
         if (draggedId !== index && draggedId !== index - 1) {
@@ -215,16 +216,19 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
     const oldServices = services;
     services = [];
 
+    let newId = targetId;
+
     for (let i = 0; i < targetId; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
+            if (i === oldActiveService) newId = services.length - 1;
         }
     }
     services.push(oldServices[serviceId]);
-    const newId = services.length - 1;
     for (let i = targetId; i < oldServices.length; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
+            if (i === oldActiveService) newId = services.length - 1;
         }
     }
 
@@ -311,13 +315,25 @@ function initDrag(index, li) {
         event.dataTransfer.dropEffect = 'move';
         document.getElementById('service-last-drag-position').classList.remove('hidden');
     });
-    li.addEventListener('dragover', () => {
-        if (draggedId !== index && draggedId !== index - 1) {
-            resetDrag();
-            lastDragTarget = dragTargetId = index;
-            document.getElementById('service-last-drag-position').classList.remove('hidden');
-            li.classList.add('drag-target');
+    li.addEventListener('dragover', (e) => {
+        let realIndex = index;
+        let rect = li.getBoundingClientRect();
+
+        if ((e.clientY - rect.y) / rect.height >= 0.5) {
+            realIndex++;
         }
+
+        if (draggedId === realIndex - 1) {
+            realIndex--;
+        }
+
+        resetDrag();
+        let el = realIndex === services.length ? lastDragPosition : services[realIndex].li;
+        lastDragTarget = dragTargetId = realIndex;
+        lastDragPosition.classList.remove('hidden');
+        el.classList.add('drag-target');
+
+        if (draggedId === realIndex || draggedId === realIndex - 1) el.classList.add('drag-target-self');
     });
     li.addEventListener('dragend', () => {
         reorderService(draggedId, lastDragTarget);
@@ -331,6 +347,7 @@ function resetDrag() {
     dragTargetCount = 0;
     document.getElementById('service-selector').querySelectorAll('li').forEach(li => {
         li.classList.remove('drag-target');
+        li.classList.remove('drag-target-self');
     });
     const lastDragPosition = document.getElementById('service-last-drag-position');
     lastDragPosition.classList.remove('drag-target');
@@ -340,20 +357,32 @@ function resetDrag() {
 function reorderService(serviceId, targetId) {
     console.log('Reordering service', serviceId, targetId);
     if (targetId >= 0) {
+        oldActiveService = selectedService;
         setActiveService(null);
         ipcRenderer.send('reorderService', serviceId, targetId);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    forwardButton = document.querySelector('#forward');
+    statusButton = document.getElementById('status');
+
+    homeButton = document.getElementById('home');
+    homeButton.addEventListener('click', () => goHome());
+
+    forwardButton = document.getElementById('forward');
     forwardButton.addEventListener('click', () => goForward());
 
-    backButton = document.querySelector('#back');
+    backButton = document.getElementById('back');
     backButton.addEventListener('click', () => goBack());
 
-    addButton = document.querySelector('#add-button');
+    reloadButton = document.getElementById('reload');
+    reloadButton.addEventListener('click', () => reload());
+
+    addButton = document.getElementById('add-button');
     addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
+
+    settingsButton = document.getElementById('settings-button');
+    settingsButton.addEventListener('click', () => ipcRenderer.send('openSettings', null));
 });
 
 function setActiveService(serviceId) {
@@ -485,7 +514,7 @@ function loadService(serviceId, service) {
         // Load favicon
         service.view.addEventListener('page-favicon-updated', event => {
             console.debug('Loaded favicons for', service.name, event.favicons);
-            if (event.favicons.length > 0) {
+            if (event.favicons.length > 0 && service.favicon !== event.favicons[0]) {
                 ipcRenderer.send('setServiceFavicon', serviceId, event.favicons[0]);
                 if (service.useFavicon) {
                     const img = document.createElement('img');
@@ -555,11 +584,14 @@ function updateNavigation() {
     // Update active list element
     for (let i = 0; i < services.length; i++) {
         const service = services[i];
-        if (parseInt(selectedService) === i) {
-            service.li.classList.add('active');
-        } else {
-            service.li.classList.remove('active');
-        }
+
+        // Active?
+        if (parseInt(selectedService) === i) service.li.classList.add('active');
+        else service.li.classList.remove('active');
+
+        // Loaded?
+        if (service.viewReady) service.li.classList.add('loaded');
+        else service.li.classList.remove('loaded');
     }
 
     if (selectedService !== null && services[selectedService].viewReady) {
@@ -567,14 +599,29 @@ function updateNavigation() {
         // Update history navigation
         let view = services[selectedService].view;
 
+        homeButton.classList.remove('disabled');
+
         if (view && view.canGoForward()) forwardButton.classList.remove('disabled');
         else forwardButton.classList.add('disabled');
 
         if (view && view.canGoBack()) backButton.classList.remove('disabled');
         else backButton.classList.add('disabled');
+
+        reloadButton.classList.remove('disabled');
+
+        updateStatusButton();
     }
 
     updateWindowTitle();
+}
+
+function updateStatusButton() {
+    let protocol = services[selectedService].view.getURL().split('://')[0];
+    if (!protocol) protocol = 'unknown';
+    for (const c of statusButton.children) {
+        if (c.classList.contains(protocol)) c.classList.add('active');
+        else c.classList.remove('active');
+    }
 }
 
 function updateWindowTitle() {
@@ -585,6 +632,12 @@ function updateWindowTitle() {
     }
 }
 
+function goHome() {
+    let service = services[selectedService];
+    service.view.loadURL(service.url)
+        .catch(console.error);
+}
+
 function goForward() {
     let view = services[selectedService].view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goForward();
@@ -593,6 +646,10 @@ function goForward() {
 function goBack() {
     let view = services[selectedService].view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
+}
+
+function reload() {
+    reloadService(selectedService);
 }
 
 function setContextMenu(webContents) {
@@ -616,7 +673,8 @@ function setContextMenu(webContents) {
                 label: 'Open URL in default browser',
                 click: () => {
                     if (props.linkURL.startsWith('https://')) {
-                        shell.openExternal(props.linkURL);
+                        shell.openExternal(props.linkURL)
+                            .catch(console.error);
                     }
                 },
             }));

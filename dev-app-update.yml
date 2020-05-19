@@ -1,0 +1,6 @@
+owner: ArisuOngaku
+repo: tabs
+provider: github
+updaterCacheDirName: tabs-updater
+publisherName:
+  - Alice Gaudon
