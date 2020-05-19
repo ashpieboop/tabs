@@ -196,8 +196,9 @@ body {
     background: transparent;
 }
 
-#history #status .unknown {
-    opacity: 0.4;
+#history #status .unknown,
+#history #status .file {
+    color: #888;
 }
 
 #history #status .https {

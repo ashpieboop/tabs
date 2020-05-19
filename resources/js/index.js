@@ -613,8 +613,9 @@ function updateNavigation() {
 }
 
 function updateStatusButton() {
+    let protocol = services[selectedService].view.getURL().split('://')[0];
+    if (!protocol) protocol = 'unknown';
     for (const c of statusButton.children) {
-        const protocol = services[selectedService].view.getURL().split('://')[0];
         if (c.classList.contains(protocol)) c.classList.add('active');
         else c.classList.remove('active');
     }
