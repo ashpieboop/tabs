@@ -10,13 +10,18 @@ body {
     width: 48px;
 }
 
-#service-selector {
+#service-buttons {
     flex-grow: 1;
+
+    overflow: hidden auto;
+}
+
+#service-selector {
     display: block;
     margin: 0;
     padding: 0;
 
-    overflow: hidden auto;
+    list-style: none;
 }
 
 #service-selector::-webkit-scrollbar {
@@ -34,14 +39,14 @@ body {
 }
 
 #service-selector .drag-target button {
-    height: 56px;
-    padding-top: 88px;
+    height: 96px;
+    padding-top: 48px;
 }
 
 #service-selector .drag-target button::after,
 #service-last-drag-position.drag-target {
     content: "";
-    height: 56px;
+    height: 48px;
     border: 1px dashed #fff;
     box-sizing: border-box;
 
