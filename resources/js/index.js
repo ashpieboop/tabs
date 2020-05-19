@@ -619,7 +619,8 @@ function setContextMenu(webContents) {
                 label: 'Open URL in default browser',
                 click: () => {
                     if (props.linkURL.startsWith('https://')) {
-                        shell.openExternal(props.linkURL);
+                        shell.openExternal(props.linkURL)
+                            .catch(console.error);
                     }
                 },
             }));
