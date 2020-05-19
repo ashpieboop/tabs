@@ -89,7 +89,7 @@ body {
 }
 
 #navigation button:focus {
-    outline-color: transparent;
+    outline: none;
     background: #fff3 !important;
 }
 
