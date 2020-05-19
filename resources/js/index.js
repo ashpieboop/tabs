@@ -16,9 +16,7 @@ const icons = [];
 
 let services = [];
 let selectedService = null;
-let homeButton;
-let forwardButton;
-let backButton;
+let homeButton, forwardButton, backButton, reloadButton;
 let addButton;
 let emptyPage;
 let urlPreview;
@@ -375,6 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
     backButton = document.getElementById('back');
     backButton.addEventListener('click', () => goBack());
 
+    reloadButton = document.getElementById('reload');
+    reloadButton.addEventListener('click', () => reload());
+
     addButton = document.getElementById('add-button');
     addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
 });
@@ -625,6 +626,10 @@ function goForward() {
 function goBack() {
     let view = services[selectedService].view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
+}
+
+function reload() {
+    reloadService(selectedService);
 }
 
 function setContextMenu(webContents) {
