@@ -30,7 +30,7 @@
   "build": {
     "appId": "tabs-app",
     "linux": {
-      "target": "deb",
+      "target": "AppImage",
       "icon": "resources/logo.png",
       "category": "Utility",
       "executableName": "tabs",
