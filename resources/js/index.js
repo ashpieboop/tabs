@@ -16,6 +16,7 @@ const icons = [];
 
 let services = [];
 let selectedService = null;
+let homeButton;
 let forwardButton;
 let backButton;
 let addButton;
@@ -365,13 +366,16 @@ function reorderService(serviceId, targetId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    forwardButton = document.querySelector('#forward');
+    homeButton = document.getElementById('home');
+    homeButton.addEventListener('click', () => goHome());
+
+    forwardButton = document.getElementById('forward');
     forwardButton.addEventListener('click', () => goForward());
 
-    backButton = document.querySelector('#back');
+    backButton = document.getElementById('back');
     backButton.addEventListener('click', () => goBack());
 
-    addButton = document.querySelector('#add-button');
+    addButton = document.getElementById('add-button');
     addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
 });
 
@@ -605,6 +609,12 @@ function updateWindowTitle() {
     } else if (services[selectedService].viewReady) {
         ipcRenderer.send('updateWindowTitle', selectedService, remote.webContents.fromId(services[selectedService].view.getWebContentsId()).getTitle());
     }
+}
+
+function goHome() {
+    let service = services[selectedService];
+    service.view.loadURL(service.url)
+        .catch(console.error);
 }
 
 function goForward() {
