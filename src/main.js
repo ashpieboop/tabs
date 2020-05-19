@@ -1,11 +1,10 @@
 import fs from "fs";
 import path from "path";
-import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
+import {app, BrowserWindow, dialog, ipcMain, Menu, shell, Tray} from "electron";
 
 import Meta from "./Meta";
 import Config from "./Config";
 import Service from "./Service";
-import {autoUpdater} from "electron-updater";
 import Updater from "./Updater";
 
 const resourcesDir = path.resolve(__dirname, '../resources');
@@ -40,7 +39,31 @@ function toggleMainWindow() {
 
 async function createWindow() {
     // Check for updates
-    await autoUpdater.checkForUpdatesAndNotify();
+    updater.checkForUpdates((available, updateInfo) => {
+        if (available && updateInfo.version !== config.updateCheckSkip) {
+            dialog.showMessageBox(window, {
+                message: `Version ${updateInfo.version} of tabs is available. Do you wish to download this update?`,
+                buttons: [
+                    'Cancel',
+                    'Download',
+                ],
+                checkboxChecked: false,
+                checkboxLabel: `Don't remind me for this version`,
+                cancelId: 0,
+                defaultId: 1,
+                type: 'question'
+            }).then(e => {
+                if (e.checkboxChecked) {
+                    console.log('Skipping update check for version', updateInfo.version);
+                    config.updateCheckSkip = updateInfo.version;
+                    config.save();
+                }
+                if (e.response === 1) {
+                    return shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`);
+                }
+            }).catch(console.error);
+        }
+    });
 
     // System tray
     console.log('Loading system Tray');

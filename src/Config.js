@@ -33,6 +33,8 @@ export default class Config {
             this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://github.com/ArisuOngaku/tabs', false));
         }
 
+        this.updateCheckSkip = data.updateCheckSkip;
+
         this.save();
     }
 

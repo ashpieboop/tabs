@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus = document.getElementById('update-status');
     updateButton = document.getElementById('download-button');
     updateButton.addEventListener('click', () => {
-        shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/tag/v${updateInfo.version}`)
+        shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`)
             .catch(console.error);
     });
 
