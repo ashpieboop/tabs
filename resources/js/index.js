@@ -511,7 +511,7 @@ function loadService(serviceId, service) {
         // Load favicon
         service.view.addEventListener('page-favicon-updated', event => {
             console.debug('Loaded favicons for', service.name, event.favicons);
-            if (event.favicons.length > 0) {
+            if (event.favicons.length > 0 && service.favicon !== event.favicons[0]) {
                 ipcRenderer.send('setServiceFavicon', serviceId, event.favicons[0]);
                 if (service.useFavicon) {
                     const img = document.createElement('img');
