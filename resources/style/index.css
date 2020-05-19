@@ -38,7 +38,7 @@ body {
     user-drag: none;
 }
 
-#service-selector .drag-target button {
+#service-selector .drag-target:not(.drag-target-self) button {
     height: 96px;
     padding-top: 48px;
 }
@@ -49,8 +49,6 @@ body {
     height: 48px;
     border: 1px dashed #fff;
     box-sizing: border-box;
-
-    background-color: rgb(43, 43, 43);
 }
 
 #service-selector .drag-target button::after {

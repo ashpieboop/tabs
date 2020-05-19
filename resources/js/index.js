@@ -22,6 +22,7 @@ let addButton;
 let emptyPage;
 let urlPreview;
 
+let lastDragPosition;
 
 // Service context menu
 function openServiceContextMenu(event, serviceId) {
@@ -146,7 +147,7 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
     }
 
     // Init drag last position
-    const lastDragPosition = document.getElementById('service-last-drag-position');
+    lastDragPosition = document.getElementById('service-last-drag-position');
     lastDragPosition.addEventListener('dragover', () => {
         const index = services.length;
         if (draggedId !== index && draggedId !== index - 1) {
@@ -311,13 +312,25 @@ function initDrag(index, li) {
         event.dataTransfer.dropEffect = 'move';
         document.getElementById('service-last-drag-position').classList.remove('hidden');
     });
-    li.addEventListener('dragover', () => {
-        if (draggedId !== index && draggedId !== index - 1) {
-            resetDrag();
-            lastDragTarget = dragTargetId = index;
-            document.getElementById('service-last-drag-position').classList.remove('hidden');
-            li.classList.add('drag-target');
+    li.addEventListener('dragover', (e) => {
+        let realIndex = index;
+        let rect = li.getBoundingClientRect();
+
+        if ((e.clientY - rect.y) / rect.height >= 0.5) {
+            realIndex++;
         }
+
+        if (draggedId === realIndex - 1) {
+            realIndex--;
+        }
+
+        resetDrag();
+        let el = realIndex === services.length ? lastDragPosition : services[realIndex].li;
+        lastDragTarget = dragTargetId = realIndex;
+        lastDragPosition.classList.remove('hidden');
+        el.classList.add('drag-target');
+
+        if (draggedId === realIndex || draggedId === realIndex - 1) el.classList.add('drag-target-self');
     });
     li.addEventListener('dragend', () => {
         reorderService(draggedId, lastDragTarget);
@@ -331,6 +344,7 @@ function resetDrag() {
     dragTargetCount = 0;
     document.getElementById('service-selector').querySelectorAll('li').forEach(li => {
         li.classList.remove('drag-target');
+        li.classList.remove('drag-target-self');
     });
     const lastDragPosition = document.getElementById('service-last-drag-position');
     lastDragPosition.classList.remove('drag-target');
