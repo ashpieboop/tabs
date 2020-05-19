@@ -23,6 +23,7 @@ let emptyPage;
 let urlPreview;
 
 let lastDragPosition;
+let oldActiveService; // For service reordering
 
 // Service context menu
 function openServiceContextMenu(event, serviceId) {
@@ -216,16 +217,19 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
     const oldServices = services;
     services = [];
 
+    let newId = targetId;
+
     for (let i = 0; i < targetId; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
+            if (i === oldActiveService) newId = i;
         }
     }
     services.push(oldServices[serviceId]);
-    const newId = services.length - 1;
     for (let i = targetId; i < oldServices.length; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
+            if (i === oldActiveService) newId = i;
         }
     }
 
@@ -354,6 +358,7 @@ function resetDrag() {
 function reorderService(serviceId, targetId) {
     console.log('Reordering service', serviceId, targetId);
     if (targetId >= 0) {
+        oldActiveService = selectedService;
         setActiveService(null);
         ipcRenderer.send('reorderService', serviceId, targetId);
     }
