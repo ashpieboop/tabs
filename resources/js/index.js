@@ -222,14 +222,14 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
     for (let i = 0; i < targetId; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
-            if (i === oldActiveService) newId = i;
+            if (i === oldActiveService) newId = services.length - 1;
         }
     }
     services.push(oldServices[serviceId]);
     for (let i = targetId; i < oldServices.length; i++) {
         if (i !== serviceId) {
             services.push(oldServices[i]);
-            if (i === oldActiveService) newId = i;
+            if (i === oldActiveService) newId = services.length - 1;
         }
     }
 
