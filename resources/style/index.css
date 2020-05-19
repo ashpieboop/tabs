@@ -10,6 +10,10 @@ body {
     width: 48px;
 }
 
+#navigation > :not(#service-buttons) {
+    flex-shrink: 0;
+}
+
 #service-buttons {
     flex-grow: 1;
 
