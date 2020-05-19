@@ -16,7 +16,7 @@ const icons = [];
 
 let services = [];
 let selectedService = null;
-let homeButton, forwardButton, backButton, reloadButton;
+let statusButton, homeButton, forwardButton, backButton, reloadButton;
 let addButton;
 let emptyPage;
 let urlPreview;
@@ -364,6 +364,8 @@ function reorderService(serviceId, targetId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    statusButton = document.getElementById('status');
+
     homeButton = document.getElementById('home');
     homeButton.addEventListener('click', () => goHome());
 
@@ -594,14 +596,28 @@ function updateNavigation() {
         // Update history navigation
         let view = services[selectedService].view;
 
+        homeButton.classList.remove('disabled');
+
         if (view && view.canGoForward()) forwardButton.classList.remove('disabled');
         else forwardButton.classList.add('disabled');
 
         if (view && view.canGoBack()) backButton.classList.remove('disabled');
         else backButton.classList.add('disabled');
+
+        reloadButton.classList.remove('disabled');
+
+        updateStatusButton();
     }
 
     updateWindowTitle();
+}
+
+function updateStatusButton() {
+    for (const c of statusButton.children) {
+        const protocol = services[selectedService].view.getURL().split('://')[0];
+        if (c.classList.contains(protocol)) c.classList.add('active');
+        else c.classList.remove('active');
+    }
 }
 
 function updateWindowTitle() {
