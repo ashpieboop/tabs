@@ -17,12 +17,12 @@ const icons = [];
 let services = [];
 let selectedService = null;
 let statusButton, homeButton, forwardButton, backButton, reloadButton;
-let addButton;
+let addButton, settingsButton;
 let emptyPage;
 let urlPreview;
 
-let lastDragPosition;
-let oldActiveService; // For service reordering
+// Service reordering
+let lastDragPosition, oldActiveService;
 
 // Service context menu
 function openServiceContextMenu(event, serviceId) {
@@ -380,6 +380,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addButton = document.getElementById('add-button');
     addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
+
+    settingsButton = document.getElementById('settings-button');
+    settingsButton.addEventListener('click', () => ipcRenderer.send('openSettings', null));
 });
 
 function setActiveService(serviceId) {
