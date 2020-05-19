@@ -555,11 +555,14 @@ function updateNavigation() {
     // Update active list element
     for (let i = 0; i < services.length; i++) {
         const service = services[i];
-        if (parseInt(selectedService) === i) {
-            service.li.classList.add('active');
-        } else {
-            service.li.classList.remove('active');
-        }
+
+        // Active?
+        if (parseInt(selectedService) === i) service.li.classList.add('active');
+        else service.li.classList.remove('active');
+
+        // Loaded?
+        if (service.viewReady) service.li.classList.add('loaded');
+        else service.li.classList.remove('loaded');
     }
 
     if (selectedService !== null && services[selectedService].viewReady) {
