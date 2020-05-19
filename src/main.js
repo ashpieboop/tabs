@@ -234,7 +234,7 @@ async function createWindow() {
             let checkForUpdatesListener;
             ipcMain.on('checkForUpdates', checkForUpdatesListener = (e) => {
                 updater.checkForUpdates((available, version) => {
-                    ipcMain.emit('updateStatus', available, version);
+                    settingsWindow.webContents.send('updateStatus', available, version);
                 });
             });
             settingsWindow.on('close', () => {

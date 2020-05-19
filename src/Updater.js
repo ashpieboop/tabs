@@ -1,20 +1,18 @@
 import {autoUpdater} from "electron-updater";
 
 export default class Updater {
-    #callback = (available, data) => {
-        console.log('Update:', available, data);
-    };
+    #updateInfo;
 
     constructor() {
         autoUpdater.autoDownload = false;
         autoUpdater.on('error', err => {
-            this.#callback(false, err);
+            this.notifyUpdate(false, err);
         });
         autoUpdater.on('update-available', v => {
-            this.#callback(true, v);
+            this.notifyUpdate(true, v);
         });
         autoUpdater.on('update-not-available', () => {
-            this.#callback(false);
+            this.notifyUpdate(false);
         });
     }
 
@@ -22,15 +20,24 @@ export default class Updater {
      * @param {Function} callback
      */
     checkForUpdates(callback) {
-        this.#callback = callback;
+        if (this.#updateInfo) {
+            callback(this.#updateInfo.version !== this.getCurrentVersion().raw, this.#updateInfo);
+            return;
+        }
+
         autoUpdater.checkForUpdates().then(r => {
-            this.#callback(false, r.updateInfo);
+            this.#updateInfo = r.updateInfo;
+            callback(r.updateInfo.version !== this.getCurrentVersion().raw, r.updateInfo);
         }).catch(err => {
-            this.#callback(false, err);
+            callback(false, err);
         });
     }
 
     getCurrentVersion() {
         return autoUpdater.currentVersion;
+    }
+
+    notifyUpdate(available, data) {
+        console.log('Update:', available, data);
     }
 }
