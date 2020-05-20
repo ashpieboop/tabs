@@ -88,6 +88,11 @@ form {
     margin-left: 8px;
 }
 
+label.form-group {
+    line-height: 29px;
+    text-align: left;
+}
+
 #buttons {
     grid-template-columns: repeat(2, 1fr);
 }

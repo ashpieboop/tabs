@@ -16,7 +16,7 @@ const icons = [];
 
 let services = [];
 let selectedService = null;
-let statusButton, homeButton, forwardButton, backButton, reloadButton;
+let securityButton, homeButton, forwardButton, backButton, refreshButton;
 let addButton, settingsButton;
 let emptyPage;
 let urlPreview;
@@ -119,7 +119,7 @@ function openServiceContextMenu(event, serviceId) {
 }
 
 
-ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, actualSelectedService, emptyUrl) => {
+ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualSelectedService, emptyUrl, config) => {
     // App info
     appInfo.title = appData.title;
 
@@ -132,7 +132,7 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
     }
 
     console.log('Updating services ...');
-    services = actualServices;
+    services = config.services;
 
     const nav = document.querySelector('#service-selector');
     while (nav.children.length > 0) {
@@ -176,6 +176,19 @@ ipcRenderer.on('data', (event, appData, brandIcons, solidIcons, actualServices, 
             urlPreview.classList.add('right');
         }
     });
+
+    // History nav buttons
+    const buttons = {
+        securityButton: securityButton,
+        homeButton: homeButton,
+        backButton: backButton,
+        forwardButton: forwardButton,
+        refreshButton: refreshButton,
+    };
+    for (const k in buttons) {
+        if (config[k]) buttons[k].classList.remove('hidden');
+        else buttons[k].classList.add('hidden');
+    }
 });
 
 function removeServiceFeatures(id) {
@@ -364,7 +377,7 @@ function reorderService(serviceId, targetId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    statusButton = document.getElementById('status');
+    securityButton = document.getElementById('status');
 
     homeButton = document.getElementById('home');
     homeButton.addEventListener('click', () => goHome());
@@ -375,8 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
     backButton = document.getElementById('back');
     backButton.addEventListener('click', () => goBack());
 
-    reloadButton = document.getElementById('reload');
-    reloadButton.addEventListener('click', () => reload());
+    refreshButton = document.getElementById('reload');
+    refreshButton.addEventListener('click', () => reload());
 
     addButton = document.getElementById('add-button');
     addButton.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
@@ -607,7 +620,7 @@ function updateNavigation() {
         if (view && view.canGoBack()) backButton.classList.remove('disabled');
         else backButton.classList.add('disabled');
 
-        reloadButton.classList.remove('disabled');
+        refreshButton.classList.remove('disabled');
 
         updateStatusButton();
     }
@@ -618,7 +631,7 @@ function updateNavigation() {
 function updateStatusButton() {
     let protocol = services[selectedService].view.getURL().split('://')[0];
     if (!protocol) protocol = 'unknown';
-    for (const c of statusButton.children) {
+    for (const c of securityButton.children) {
         if (c.classList.contains(protocol)) c.classList.add('active');
         else c.classList.remove('active');
     }

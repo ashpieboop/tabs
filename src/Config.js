@@ -9,6 +9,15 @@ const configDir = Meta.isDevMode() ? getAppDataPath('tabs-app-dev') : getAppData
 const configFile = path.resolve(configDir, 'config.json');
 
 export default class Config {
+    updateCheckSkip = undefined;
+    securityButton = true;
+    homeButton = false;
+    backButton = true;
+    forwardButton = false;
+    refreshButton = false;
+
+    properties = [];
+
     constructor() {
         // Load data from config file
         let data = {};
@@ -33,7 +42,13 @@ export default class Config {
             this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://github.com/ArisuOngaku/tabs', false));
         }
 
-        this.updateCheckSkip = data.updateCheckSkip;
+        this.defineProperty('updateCheckSkip', data);
+
+        this.defineProperty('securityButton', data);
+        this.defineProperty('homeButton', data);
+        this.defineProperty('backButton', data);
+        this.defineProperty('forwardButton', data);
+        this.defineProperty('refreshButton', data);
 
         this.save();
     }
@@ -43,5 +58,21 @@ export default class Config {
         this.services = this.services.filter(s => s !== null);
         fs.writeFileSync(configFile, JSON.stringify(this, null, 4));
         console.log('> Config saved to', configFile.toString());
+    }
+
+    defineProperty(name, data) {
+        if (data[name] !== undefined) {
+            this[name] = data[name];
+        }
+
+        this.properties.push(name);
+    }
+
+    update(data) {
+        for (const prop of this.properties) {
+            if (data[prop] !== undefined) {
+                this[prop] = data[prop];
+            }
+        }
     }
 }

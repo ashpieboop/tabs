@@ -252,6 +252,7 @@ async function createWindow() {
             let syncListener;
             ipcMain.on('syncSettings', syncListener = () => {
                 settingsWindow.webContents.send('current-version', updater.getCurrentVersion());
+                settingsWindow.webContents.send('config', config);
             });
 
             let checkForUpdatesListener;
@@ -260,9 +261,18 @@ async function createWindow() {
                     settingsWindow.webContents.send('updateStatus', available, version);
                 });
             });
+
+            let saveConfigListener;
+            ipcMain.on('save-config', saveConfigListener = (e, data) => {
+                config.update(data);
+                config.save();
+                sendData();
+            });
+
             settingsWindow.on('close', () => {
-                ipcMain.removeListener('sync-settings', syncListener);
+                ipcMain.removeListener('syncSettings', syncListener);
                 ipcMain.removeListener('checkForUpdates', checkForUpdatesListener);
+                ipcMain.removeListener('save-config', saveConfigListener);
             });
             settingsWindow.loadFile(path.resolve(resourcesDir, 'settings.html'))
                 .catch(console.error);
@@ -274,7 +284,7 @@ async function createWindow() {
 
 function sendData() {
     console.log('Syncing data');
-    window.webContents.send('data', Meta.title, brandIcons, solidIcons, config.services, selectedService, path.resolve(resourcesDir, 'empty.html'));
+    window.webContents.send('data', Meta.title, brandIcons, solidIcons, selectedService, path.resolve(resourcesDir, 'empty.html'), config);
 }
 
 function setActiveService(index) {
