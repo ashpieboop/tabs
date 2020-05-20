@@ -7,7 +7,7 @@
     "email": "alice@gaudon.pro"
   },
   "homepage": "https://gitlab.com/ArisuOngaku/tabs",
-  "license": "MIT",
+  "license": "GPL-3",
   "main": "tabs.js",
   "scripts": {
     "start": "electron .",
