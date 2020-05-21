@@ -9,18 +9,19 @@ const configDir = Meta.isDevMode() ? getAppDataPath('tabs-app-dev') : getAppData
 const configFile = path.resolve(configDir, 'config.json');
 
 export default class Config {
-    updateCheckSkip = undefined;
-    securityButton = true;
-    homeButton = false;
-    backButton = true;
-    forwardButton = false;
-    refreshButton = false;
+    public services: Service[] = [];
+    public updateCheckSkip?: string;
+    public securityButton: boolean = true;
+    public homeButton: boolean = false;
+    public backButton: boolean = true;
+    public forwardButton: boolean = false;
+    public refreshButton: boolean = false;
 
-    properties = [];
+    private properties: string[] = [];
 
     constructor() {
         // Load data from config file
-        let data = {};
+        let data: any = {};
         if (fs.existsSync(configDir) && fs.statSync(configDir).isDirectory()) {
             if (fs.existsSync(configFile) && fs.statSync(configFile).isFile())
                 data = JSON.parse(fs.readFileSync(configFile, 'utf8'));
@@ -29,7 +30,6 @@ export default class Config {
         }
 
         // Parse services
-        this.services = [];
         if (typeof data.services === 'object') {
             let i = 0;
             for (const service of data.services) {
@@ -60,18 +60,18 @@ export default class Config {
         console.log('> Config saved to', configFile.toString());
     }
 
-    defineProperty(name, data) {
+    defineProperty(name: string, data: any) {
         if (data[name] !== undefined) {
-            this[name] = data[name];
+            (<any>this)[name] = data[name];
         }
 
         this.properties.push(name);
     }
 
-    update(data) {
+    update(data: any) {
         for (const prop of this.properties) {
             if (data[prop] !== undefined) {
-                this[prop] = data[prop];
+                (<any>this)[prop] = data[prop];
             }
         }
     }

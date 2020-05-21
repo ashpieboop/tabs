@@ -1,7 +1,8 @@
-/.idea
-node_modules/
-/config
-/dist
+.idea
+node_modules
+config
+dist
+build
 GH_TOKEN
 
 yarn-error.log

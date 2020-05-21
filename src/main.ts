@@ -1,11 +1,13 @@
 import fs from "fs";
 import path from "path";
+import SingleInstance from "single-instance";
 import {app, BrowserWindow, dialog, ipcMain, Menu, shell, Tray} from "electron";
 
 import Meta from "./Meta";
 import Config from "./Config";
 import Service from "./Service";
 import Updater from "./Updater";
+import Event = Electron.Event;
 
 const resourcesDir = path.resolve(__dirname, '../resources');
 const iconPath = path.resolve(resourcesDir, 'logo.png');
@@ -21,9 +23,9 @@ const solidIcons = listIcons('solid');
 
 let selectedService = 0;
 
-let tray;
-let window;
-let serviceSettingsWindow, settingsWindow;
+let tray: Tray;
+let window: BrowserWindow | null;
+let serviceSettingsWindow: BrowserWindow | null, settingsWindow: BrowserWindow | null;
 
 function toggleMainWindow() {
     if (window != null) {
@@ -41,7 +43,7 @@ async function createWindow() {
     // Check for updates
     updater.checkForUpdates((available, updateInfo) => {
         if (available && updateInfo.version !== config.updateCheckSkip) {
-            dialog.showMessageBox(window, {
+            dialog.showMessageBox(window!, {
                 message: `Version ${updateInfo.version} of tabs is available. Do you wish to download this update?`,
                 buttons: [
                     'Cancel',
@@ -71,7 +73,7 @@ async function createWindow() {
     tray.setToolTip('Tabs');
     tray.setContextMenu(Menu.buildFromTemplate([
         {label: 'Tabs', enabled: false},
-        {label: 'Open Tabs', click: () => window.show()},
+        {label: 'Open Tabs', click: () => window!.show()},
         {type: 'separator'},
         {label: 'Quit', role: 'quit'}
     ]));
@@ -142,7 +144,7 @@ async function createWindow() {
                     enableRemoteModule: true,
                     webviewTag: true,
                 },
-                parent: window,
+                parent: window!,
                 modal: true,
                 autoHideMenuBar: true,
                 height: 850,
@@ -155,10 +157,10 @@ async function createWindow() {
                     mode: 'right'
                 });
             }
-            let syncListener;
+            let syncListener: () => void;
             ipcMain.on('sync-settings', syncListener = () => {
-                serviceSettingsWindow.webContents.send('syncIcons', brandIcons, solidIcons);
-                serviceSettingsWindow.webContents.send('loadService', serviceId, config.services[serviceId]);
+                serviceSettingsWindow!.webContents.send('syncIcons', brandIcons, solidIcons);
+                serviceSettingsWindow!.webContents.send('loadService', serviceId, config.services[serviceId]);
             });
             serviceSettingsWindow.on('close', () => {
                 ipcMain.removeListener('sync-settings', syncListener);
@@ -179,7 +181,7 @@ async function createWindow() {
         }
         config.save();
 
-        window.webContents.send('updateService', id, newService);
+        window!.webContents.send('updateService', id, newService);
     });
 
     ipcMain.on('deleteService', (e, id) => {
@@ -187,7 +189,7 @@ async function createWindow() {
         delete config.services[id];
         config.save();
 
-        window.webContents.send('deleteService', id);
+        window!.webContents.send('deleteService', id);
     });
 
     ipcMain.on('reorderService', (e, serviceId, targetId) => {
@@ -219,10 +221,10 @@ async function createWindow() {
 
     ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
         if (serviceId === null) {
-            window.setTitle(Meta.title);
+            window!.setTitle(Meta.title);
         } else {
             const service = config.services[serviceId];
-            window.setTitle(Meta.getTitleForService(service, viewTitle));
+            window!.setTitle(Meta.getTitleForService(service, viewTitle));
         }
     });
 
@@ -236,7 +238,7 @@ async function createWindow() {
                     enableRemoteModule: true,
                     webviewTag: true,
                 },
-                parent: window,
+                parent: window!,
                 modal: true,
                 autoHideMenuBar: true,
                 height: 850,
@@ -249,21 +251,21 @@ async function createWindow() {
                     mode: 'right'
                 });
             }
-            let syncListener;
+            let syncListener: () => void;
             ipcMain.on('syncSettings', syncListener = () => {
-                settingsWindow.webContents.send('current-version', updater.getCurrentVersion());
-                settingsWindow.webContents.send('config', config);
+                settingsWindow!.webContents.send('current-version', updater.getCurrentVersion());
+                settingsWindow!.webContents.send('config', config);
             });
 
-            let checkForUpdatesListener;
-            ipcMain.on('checkForUpdates', checkForUpdatesListener = (e) => {
+            let checkForUpdatesListener: () => void;
+            ipcMain.on('checkForUpdates', checkForUpdatesListener = () => {
                 updater.checkForUpdates((available, version) => {
-                    settingsWindow.webContents.send('updateStatus', available, version);
+                    settingsWindow!.webContents.send('updateStatus', available, version);
                 });
             });
 
-            let saveConfigListener;
-            ipcMain.on('save-config', saveConfigListener = (e, data) => {
+            let saveConfigListener: (e: Event, data: any) => void;
+            ipcMain.on('save-config', saveConfigListener = (e: Event, data: any) => {
                 config.update(data);
                 config.save();
                 sendData();
@@ -284,18 +286,18 @@ async function createWindow() {
 
 function sendData() {
     console.log('Syncing data');
-    window.webContents.send('data', Meta.title, brandIcons, solidIcons, selectedService, path.resolve(resourcesDir, 'empty.html'), config);
+    window!.webContents.send('data', Meta.title, brandIcons, solidIcons, selectedService, path.resolve(resourcesDir, 'empty.html'), config);
 }
 
-function setActiveService(index) {
+function setActiveService(index: number) {
     console.log('Selected service is now', index);
     selectedService = index;
 }
 
-function listIcons(set) {
+function listIcons(set: string) {
     console.log('Loading icon set', set);
     const directory = path.resolve(resourcesDir, 'icons/' + set);
-    const icons = [];
+    const icons: { name: string; faIcon: string }[] = [];
     const dir = set === 'brands' ? 'fab' : 'fas';
     fs.readdirSync(directory).forEach(i => icons.push({
         name: i.split('.svg')[0],
@@ -304,7 +306,15 @@ function listIcons(set) {
     return icons;
 }
 
-console.log('Starting app');
-app.on('ready', () => {
-    createWindow().catch(console.error);
+
+// Check if application is already running
+const lock = new SingleInstance('tabs-app');
+lock.lock().then(() => {
+    console.log('Starting app');
+    app.on('ready', () => {
+        createWindow().catch(console.error);
+    });
+}).catch(err => {
+    console.error(err);
+    process.exit(0);
 });

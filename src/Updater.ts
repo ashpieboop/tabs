@@ -1,32 +1,32 @@
-import {autoUpdater} from "electron-updater";
+import {autoUpdater, UpdateInfo} from "electron-updater";
 
 export default class Updater {
-    #updateInfo;
+    private updateInfo?: UpdateInfo;
 
     constructor() {
         autoUpdater.autoDownload = false;
         autoUpdater.on('error', err => {
-            this.notifyUpdate(false, err);
+            console.log('Error while checking for updates', err);
         });
         autoUpdater.on('update-available', v => {
-            this.notifyUpdate(true, v);
+            console.log('Update available', v);
         });
         autoUpdater.on('update-not-available', () => {
-            this.notifyUpdate(false);
+            console.log('No update available.');
         });
     }
 
     /**
      * @param {Function} callback
      */
-    checkForUpdates(callback) {
-        if (this.#updateInfo) {
-            callback(this.#updateInfo.version !== this.getCurrentVersion().raw, this.#updateInfo);
+    checkForUpdates(callback: UpdateCheckCallback) {
+        if (this.updateInfo) {
+            callback(this.updateInfo.version !== this.getCurrentVersion().raw, this.updateInfo);
             return;
         }
 
         autoUpdater.checkForUpdates().then(r => {
-            this.#updateInfo = r.updateInfo;
+            this.updateInfo = r.updateInfo;
             callback(r.updateInfo.version !== this.getCurrentVersion().raw, r.updateInfo);
         }).catch(err => {
             callback(false, err);
@@ -36,8 +36,6 @@ export default class Updater {
     getCurrentVersion() {
         return autoUpdater.currentVersion;
     }
-
-    notifyUpdate(available, data) {
-        console.log('Update:', available, data);
-    }
 }
+
+export type UpdateCheckCallback = (available: boolean, data: UpdateInfo) => void;
