@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import SingleInstance from "single-instance";
-import {app, BrowserWindow, dialog, ipcMain, Menu, shell, Tray} from "electron";
+import {app, BrowserWindow, ipcMain, Menu, shell, Tray} from "electron";
 
 import Meta from "./Meta";
 import Config from "./Config";
@@ -13,7 +13,7 @@ const resourcesDir = path.resolve(__dirname, '../resources');
 const iconPath = path.resolve(resourcesDir, 'logo.png');
 
 const config = new Config();
-const updater = new Updater();
+const updater = new Updater(config);
 
 const devMode = Meta.isDevMode();
 
@@ -41,31 +41,9 @@ function toggleMainWindow() {
 
 async function createWindow() {
     // Check for updates
-    updater.checkForUpdates((available, updateInfo) => {
-        if (available && updateInfo.version !== config.updateCheckSkip) {
-            dialog.showMessageBox(window!, {
-                message: `Version ${updateInfo.version} of tabs is available. Do you wish to download this update?`,
-                buttons: [
-                    'Cancel',
-                    'Download',
-                ],
-                checkboxChecked: false,
-                checkboxLabel: `Don't remind me for this version`,
-                cancelId: 0,
-                defaultId: 1,
-                type: 'question'
-            }).then(e => {
-                if (e.checkboxChecked) {
-                    console.log('Skipping update check for version', updateInfo.version);
-                    config.updateCheckSkip = updateInfo.version;
-                    config.save();
-                }
-                if (e.response === 1) {
-                    return shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`);
-                }
-            }).catch(console.error);
-        }
-    });
+    updater.checkAndPromptForUpdates(window!).then(() => {
+        console.log('Update check successful.');
+    }).catch(console.error);
 
     // System tray
     console.log('Loading system Tray');
@@ -259,9 +237,9 @@ async function createWindow() {
 
             let checkForUpdatesListener: () => void;
             ipcMain.on('checkForUpdates', checkForUpdatesListener = () => {
-                updater.checkForUpdates((available, version) => {
-                    settingsWindow!.webContents.send('updateStatus', available, version);
-                });
+                updater.checkForUpdates().then(updateInfo => {
+                    settingsWindow!.webContents.send('updateStatus', typeof updateInfo === 'object', updateInfo);
+                }).catch(console.error);
             });
 
             let saveConfigListener: (e: Event, data: any) => void;
