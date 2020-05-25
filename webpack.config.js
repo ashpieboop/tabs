@@ -1,6 +1,5 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const dev = process.env.NODE_ENV === 'development';
@@ -92,13 +91,5 @@ const config = {
         }),
     ]
 };
-
-if (!dev) {
-    config.optimization = {
-        minimizer: [
-            new UglifyJSPlugin(),
-        ]
-    };
-}
 
 module.exports = config;
