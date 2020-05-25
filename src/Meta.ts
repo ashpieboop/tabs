@@ -1,7 +1,24 @@
 import Service from "./Service";
+import path from "path";
+import fs from "fs";
 
 export default class Meta {
     public static readonly title = 'Tabs';
+
+    // Paths
+    public static readonly RESOURCES_PATH = path.resolve(__dirname, '../resources');
+    public static readonly ICON_PATH = path.resolve(Meta.RESOURCES_PATH, 'images/logo.png');
+
+    // Icons
+    public static readonly BRAND_ICONS = Meta.listIcons('brands');
+    public static readonly SOLID_ICONS = Meta.listIcons('solid');
+    public static readonly REGULAR_ICONS = Meta.listIcons('regular');
+    public static readonly ICON_SETS = [
+        Meta.BRAND_ICONS,
+        Meta.SOLID_ICONS,
+        Meta.REGULAR_ICONS,
+    ];
+
     private static devMode?: boolean;
 
     public static isDevMode() {
@@ -19,5 +36,18 @@ export default class Meta {
             suffix = ' - ' + viewTitle;
         }
         return this.title + ' - ' + service.name + suffix;
+    }
+
+    private static listIcons(set: string) {
+        console.log('Loading icon set', set);
+        const directory = path.resolve(Meta.RESOURCES_PATH, `images/icons/${set}`);
+        const icons: { name: string; faIcon: string; set: string; }[] = [];
+        const dir = `fa${set[0]}`;
+        fs.readdirSync(directory).forEach(i => icons.push({
+            name: i.split('.svg')[0],
+            faIcon: dir + ' fa-' + i.split('.svg')[0],
+            set: set,
+        }));
+        return icons;
     }
 }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tabs</title>
+
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline' https://use.fontawesome.com; font-src 'self' https://use.fontawesome.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+          integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/index.css">
+
+    <script src="js/index.js" defer></script>
+</head>
+
+<body>
+<div id="navigation">
+    <div id="history">
+        <button id="status" class="hidden">
+            <i class="fas fa-question unknown active">
+                <span class="tip">Unknown protocol</span>
+            </i>
+            <i class="fas fa-lock https">
+                <span class="tip">Secured via TLS (https)</span>
+            </i>
+            <i class="fas fa-lock-open http">
+                <span class="tip">Vulnerable connection (http)</span>
+            </i>
+            <i class="fas fa-folder file">
+                <span class="tip">Local file</span>
+            </i>
+        </button>
+        <button id="home" class="hidden disabled"><i class="fas fa-home"></i></button>
+        <button id="back" class="hidden disabled"><i class="fas fa-arrow-left"></i></button>
+        <button id="forward" class="hidden disabled"><i class="fas fa-arrow-right"></i></button>
+        <button id="reload" class="hidden disabled"><i class="fas fa-redo"></i></button>
+    </div>
+
+    <div id="service-buttons">
+        <ul id="service-selector"></ul>
+        <div id="service-last-drag-position" class="hidden"></div>
+    </div>
+
+    <button id="add-button"><i class="fa fa-plus"></i></button>
+
+    <button id="settings-button"><i class="fa fa-cog"></i></button>
+</div>
+
+<div id="services">
+    <div class="loader"></div>
+    <div id="url-preview" class="hidden"></div>
+    <div id="empty-message">Load a service using the menu on the left.</div>
+</div>
+</body>
+
+</html>

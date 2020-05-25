@@ -1,0 +1,9 @@
+{
+  "bundles": {
+    "index": "ts/index.ts",
+    "settings": "ts/settings.ts",
+    "service-settings": "ts/service-settings.ts",
+    "layout": "sass/layout.scss",
+    "files": "ts/files.ts"
+  }
+}
