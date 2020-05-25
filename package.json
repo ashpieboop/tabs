@@ -14,7 +14,7 @@
     "compile": "yarn clean && tsc -p tsconfig.backend.json && webpack --mode production",
     "compile-dev": "yarn clean && tsc -p tsconfig.backend.json && webpack --mode development",
     "start": "yarn compile && electron .",
-    "dev": "yarn compile-dev && electron . --dev",
+    "dev": "yarn compile-dev && concurrently -k -n \"Electron,Webpack\" -p \"[{name}]\" -c \"green,yellow\" \"electron . --dev\" \"webpack --mode development --watch\"",
     "build": "yarn compile && electron-builder -wl",
     "release": "yarn compile && GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always"
   },
@@ -31,6 +31,7 @@
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@types/node": "^12.12.41",
     "babel-loader": "^8.1.0",
+    "concurrently": "^5.2.0",
     "copy-webpack-plugin": "^6.0.1",
     "css-loader": "^3.5.3",
     "electron": "^9.0.0",
