@@ -33,7 +33,7 @@ export default class ServiceSettingsWindow extends Window {
         }
 
         this.onIpc('sync-settings', () => {
-            window.webContents.send('syncIcons', Meta.BRAND_ICONS, Meta.SOLID_ICONS);
+            window.webContents.send('syncIcons', Meta.ICON_SETS);
             window.webContents.send('loadService', this.serviceId, this.config.services[this.serviceId]);
         });
 

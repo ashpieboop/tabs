@@ -134,8 +134,7 @@ export default class MainWindow extends Window {
     public syncData() {
         this.getWindow().webContents.send('data',
             Meta.title,
-            Meta.BRAND_ICONS,
-            Meta.SOLID_ICONS,
+            Meta.ICON_SETS,
             this.activeService,
             path.resolve(Meta.RESOURCES_PATH, 'empty.html'),
             this.config

@@ -3,6 +3,7 @@ node_modules
 config
 dist
 build
+resources
 GH_TOKEN
 
 yarn-error.log
