@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "resources/js",
+    "typeRoots": [
+      "frontend/ts/types"
+    ]
+  },
+  "include": [
+    "frontend/ts/**/*"
+  ]
+}

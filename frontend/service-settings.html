@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Service settings</title>
+
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline' https://use.fontawesome.com; font-src 'self' https://use.fontawesome.com; script-src 'self' 'sha256-5gY/z34s5Mtc3YL8GkwZQhzk9LymQIuFUQRVvs7Gh0o='">
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+          integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/service-settings.css">
+
+    <script>require('./js/service-settings.js')</script>
+</head>
+
+<body>
+<form action="javascript: save();">
+    <div class="form-header">
+        <h1>Loading...</h1>
+    </div>
+
+    <div class="form-body">
+        <div class="form-group">
+            <label for="name">Service name</label>
+            <input type="text" name="name" id="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="url">Service home URL</label>
+            <input type="text" name="url" id="url" required>
+        </div>
+
+        <div class="form-group">
+            <label for="auto-load">Automatically load service in the background</label>
+            <input type="checkbox" name="autoLoad" id="auto-load">
+        </div>
+
+        <div class="form-group">
+            <label for="custom-css">Custom CSS styling</label>
+            <textarea name="customCSS" id="custom-css" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="custom-user-agent">Custom UserAgent (i.e. google services)</label>
+            <input type="text" name="customUserAgent" id="custom-user-agent">
+            <button type="button" id="userAgentAutoFill">Auto-fill</button>
+        </div>
+
+        <div id="icon-choice">
+            <div class="form-group-header">
+                <h2>Service icon</h2>
+            </div>
+
+            <div class="form-group">
+                <label for="use-favicon">Use favicon</label>
+                <input type="checkbox" name="useFavicon" id="use-favicon">
+            </div>
+
+            <div class="form-group">
+                <label for="is-image">Use image instead of a built-in icon for the default icon</label>
+                <input type="checkbox" name="isImage" id="is-image">
+            </div>
+
+            <div class="form-group" id="icon-search-group">
+                <label for="built-in-icon-search">Icon</label>
+                <input type="text" name="icon-search" id="built-in-icon-search">
+            </div>
+            <div id="icon-select"></div>
+
+            <div class="form-group">
+                <label for="icon-url">Icon URL</label>
+                <input type="text" name="icon" id="icon-url">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-footer">
+        <div class="form-group" id="buttons">
+            <button id="cancel-button">Cancel</button>
+            <button type="submit">Save</button>
+        </div>
+    </div>
+</form>
+</body>
+</html>
