@@ -11,10 +11,10 @@
   "main": "build/main.js",
   "scripts": {
     "clean": "(! test -d build || rm -r build) && (! test -d resources || rm -r resources)",
-    "compile": "yarn clean && tsc -p tsconfig.backend.json && webpack --mode production",
-    "compile-dev": "yarn clean && tsc -p tsconfig.backend.json && webpack --mode development",
+    "compile": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode production",
+    "compile-dev": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode development",
     "start": "yarn compile && electron .",
-    "dev": "yarn compile-dev && concurrently -k -n \"Electron,Webpack\" -p \"[{name}]\" -c \"green,yellow\" \"electron . --dev\" \"webpack --mode development --watch\"",
+    "dev": "yarn compile-dev && concurrently -k -n \"Electron,Webpack,TSC-Frontend\" -p \"[{name}]\" -c \"green,yellow\" \"electron . --dev\" \"webpack --mode development --watch\" \"tsc -p tsconfig.frontend.json --watch\"",
     "build": "yarn compile && electron-builder -wl",
     "release": "yarn compile && GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always"
   },

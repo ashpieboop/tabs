@@ -1,5 +1,4 @@
 import {ipcRenderer, remote} from "electron";
-import "../sass/service-settings.scss";
 
 let isImageCheckbox: HTMLInputElement | null;
 let builtInIconSearchField: HTMLInputElement | null;

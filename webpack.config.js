@@ -14,7 +14,7 @@ for (const b in userConfig.bundles) {
 const config = {
     entry: userConfig.bundles,
     output: {
-        path: path.resolve(__dirname, 'resources/js'),
+        path: path.resolve(__dirname, 'resources/useless-js'), // Temporary until webpack stops emitting js for css files
         filename: '[name].js'
     },
     devtool: dev ? 'eval-source-map' : undefined,
@@ -69,8 +69,13 @@ const config = {
             },
             {
                 test: /\.ts$/i,
-                use: 'ts-loader',
-                exclude: '/node_modules/',
+                use: {
+                    loader: 'ts-loader',
+                    options: {
+                        configFile: 'tsconfig.frontend.json',
+                    }
+                },
+                exclude: '/node_modules/'
             },
             {
                 test: /\.html$/i,

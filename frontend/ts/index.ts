@@ -7,7 +7,6 @@ import {
     UpdateTargetUrlEvent,
     WebContents
 } from "electron";
-import "../sass/index.scss";
 
 const {
     Menu,
