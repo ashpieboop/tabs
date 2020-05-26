@@ -36,7 +36,7 @@ ipcRenderer.on('updateStatus', (e, available, version) => {
     }
 });
 
-(window as any).save = () => {
+function save() {
     let form = document.querySelector('form');
     if (!form) return;
     const formData = new FormData(form);
@@ -69,6 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cancel-button')?.addEventListener('click', e => {
         e.preventDefault();
         remote.getCurrentWindow().close();
+    });
+
+    document.querySelector('form')?.addEventListener('submit', e => {
+        e.preventDefault();
+        save();
     });
 
     ipcRenderer.send('syncSettings');

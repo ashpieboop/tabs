@@ -65,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
         remote.getCurrentWindow().close();
     });
 
+    document.querySelector('form')?.addEventListener('submit', e => {
+        e.preventDefault();
+        save();
+    });
+
     ipcRenderer.send('sync-settings');
 
     document.getElementById('userAgentAutoFill')?.addEventListener('click', () => {
@@ -170,7 +175,7 @@ function loadServiceValues() {
     }
 }
 
-(window as any).save = () => {
+function save() {
     let form = document.querySelector('form');
     if (!form) return;
     const formData = new FormData(form);
