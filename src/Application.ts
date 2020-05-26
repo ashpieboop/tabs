@@ -62,6 +62,16 @@ export default class Application {
                 });
             }
         });
+
+        // Disable unused features
+        app.on('web-contents-created', (e, contents) => {
+            contents.on('will-attach-webview', (e, webPreferences, params) => {
+                delete webPreferences.preload;
+                webPreferences.nodeIntegration = false;
+
+                // TODO: Here would be a good place to filter accessed urls (params.src). Also  consider 'will-navigate' event on contents.
+            });
+        });
     }
 
     private setupSystemTray() {
