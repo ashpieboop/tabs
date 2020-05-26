@@ -110,7 +110,7 @@ export default class MainWindow extends Window {
                 this.serviceSettingsWindow.setup();
                 this.serviceSettingsWindow.onClose(() => {
                     this.serviceSettingsWindow = undefined;
-                })
+                });
             }
         });
 

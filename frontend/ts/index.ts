@@ -466,6 +466,10 @@ function loadService(serviceId: number, service: any) {
         service.view.setAttribute('autosize', 'true');
         service.view.setAttribute('src', emptyPage);
 
+        // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
+        // eventual future human mistakes.
+        service.view.setAttribute('webpreferences', 'contextIsolation=yes');
+
         // Append element to DOM
         document.querySelector('#services')?.appendChild(service.view);
 
