@@ -1,12 +1,12 @@
 {
   "name": "tabs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
     "email": "alice@gaudon.pro"
   },
-  "homepage": "https://gitlab.com/ArisuOngaku/tabs",
+  "homepage": "https://github.com/ArisuOngaku/tabs",
   "license": "GPL-3.0-only",
   "main": "build/main.js",
   "scripts": {
@@ -99,6 +99,6 @@
         }
       ]
     },
-    "electronVersion": "9.0.1"
+    "electronVersion": "9.0.3"
   }
 }
