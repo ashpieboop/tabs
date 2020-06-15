@@ -207,6 +207,9 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
 
     // Other elements
     serviceSelector = document.getElementById('service-selector');
+
+    // Navbar size
+    document.documentElement.style.setProperty('--nav-width', config.bigNavBar ? '64px' : '48px');
 });
 
 function removeServiceFeatures(id: number): HTMLElement | null {
