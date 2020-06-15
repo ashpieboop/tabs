@@ -2,13 +2,16 @@ import {autoUpdater, UpdateInfo} from "electron-updater";
 import {dialog, shell} from "electron";
 import Config from "./Config";
 import BrowserWindow = Electron.BrowserWindow;
+import Application from "./Application";
 
 export default class Updater {
     private readonly config: Config;
+    private readonly application: Application;
     private updateInfo?: UpdateInfo;
 
-    public constructor(config: Config) {
+    public constructor(config: Config, application: Application) {
         this.config = config;
+        this.application = application;
 
         // Configure auto updater
         autoUpdater.autoDownload = false;
@@ -42,10 +45,10 @@ export default class Updater {
 
         if (updateInfo && updateInfo.version !== this.config.updateCheckSkip) {
             const input = await dialog.showMessageBox(mainWindow, {
-                message: `Version ${updateInfo.version} of tabs is available. Do you wish to download this update?`,
+                message: `Version ${updateInfo.version} of tabs is available. Do you wish to install this update?`,
                 buttons: [
                     'Cancel',
-                    'Download',
+                    'Install',
                 ],
                 checkboxChecked: false,
                 checkboxLabel: `Don't remind me for this version`,
@@ -61,7 +64,9 @@ export default class Updater {
             }
 
             if (input.response === 1) {
-                await shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`);
+                await this.application.stop();
+                await autoUpdater.downloadUpdate();
+                autoUpdater.quitAndInstall();
             }
         }
     }

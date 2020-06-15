@@ -3,6 +3,7 @@ import Meta from "./Meta";
 import Config from "./Config";
 import Updater from "./Updater";
 import MainWindow from "./windows/MainWindow";
+import * as os from "os";
 
 export default class Application {
     private readonly devMode: boolean;
@@ -14,7 +15,7 @@ export default class Application {
     constructor(devMode: boolean) {
         this.devMode = devMode;
         this.config = new Config();
-        this.updater = new Updater(this.config);
+        this.updater = new Updater(this.config, this);
         this.mainWindow = new MainWindow(this);
     }
 
@@ -26,9 +27,11 @@ export default class Application {
         this.setupElectronTweaks();
 
         // Check for updates
-        this.updater.checkAndPromptForUpdates(this.mainWindow.getWindow()).then(() => {
-            console.log('Update check successful.');
-        }).catch(console.error);
+        if (os.platform() === 'win32') {
+            this.updater.checkAndPromptForUpdates(this.mainWindow.getWindow()).then(() => {
+                console.log('Update check successful.');
+            }).catch(console.error);
+        }
 
         console.log('App started');
     }

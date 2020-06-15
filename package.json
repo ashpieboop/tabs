@@ -78,7 +78,7 @@
       "target": "nsis",
       "icon": "resources/logo.png",
       "publisherName": "Alice Gaudon",
-      "verifyUpdateCodeSignature": "true",
+      "verifyUpdateCodeSignature": "false",
       "publish": [
         {
           "provider": "github",
