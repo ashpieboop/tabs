@@ -25,11 +25,14 @@ export default class MainWindow extends Window {
             autoHideMenuBar: true,
             icon: Meta.ICON_PATH,
             title: Meta.title,
+            show: !this.application.getConfig().startMinimized,
         });
 
         const window = this.getWindow();
 
-        window.maximize();
+        if (!this.application.getConfig().startMinimized) {
+            window.maximize();
+        }
 
         if (this.application.isDevMode()) {
             window.webContents.openDevTools({

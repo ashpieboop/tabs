@@ -10,7 +10,11 @@ const configFile = path.resolve(configDir, 'config.json');
 
 export default class Config {
     public services: Service[] = [];
+
     public updateCheckSkip?: string;
+
+    public startMinimized: boolean = false;
+
     public securityButton: boolean = true;
     public homeButton: boolean = false;
     public backButton: boolean = true;
@@ -43,6 +47,8 @@ export default class Config {
         }
 
         this.defineProperty('updateCheckSkip', data);
+        
+        this.defineProperty('startMinimized', data);
 
         this.defineProperty('securityButton', data);
         this.defineProperty('homeButton', data);

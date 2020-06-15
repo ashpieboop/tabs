@@ -6,6 +6,8 @@ let updateInfo: any;
 let updateButton: HTMLElement | null;
 let config: any;
 
+let startMinimizedField: HTMLInputElement | null;
+
 let securityButtonField: HTMLInputElement | null,
     homeButtonField: HTMLInputElement | null,
     backButtonField: HTMLInputElement | null,
@@ -18,6 +20,8 @@ ipcRenderer.on('current-version', (e, version) => {
 
 ipcRenderer.on('config', (e, c) => {
     config = c;
+    if (startMinimizedField) startMinimizedField.checked = config.startMinimized;
+
     if (securityButtonField) securityButtonField.checked = config.securityButton;
     if (homeButtonField) homeButtonField.checked = config.homeButton;
     if (backButtonField) backButtonField.checked = config.backButton;
@@ -41,6 +45,8 @@ function save() {
     if (!form) return;
     const formData = new FormData(form);
 
+    config.startMinimized = formData.get('start-minimized') === 'on';
+
     config.securityButton = formData.get('security-button') === 'on';
     config.homeButton = formData.get('home-button') === 'on';
     config.backButton = formData.get('back-button') === 'on';
@@ -59,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         shell.openExternal(`https://github.com/ArisuOngaku/tabs/releases/download/v${updateInfo.version}/${updateInfo.path}`)
             .catch(console.error);
     });
+
+    startMinimizedField = <HTMLInputElement>document.getElementById('start-minimized');
 
     securityButtonField = <HTMLInputElement>document.getElementById('security-button');
     homeButtonField = <HTMLInputElement>document.getElementById('home-button');
