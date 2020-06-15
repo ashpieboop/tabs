@@ -8,6 +8,8 @@ let config: any;
 
 let startMinimizedField: HTMLInputElement | null;
 
+let bigNavBarField: HTMLInputElement | null;
+
 let securityButtonField: HTMLInputElement | null,
     homeButtonField: HTMLInputElement | null,
     backButtonField: HTMLInputElement | null,
@@ -21,6 +23,8 @@ ipcRenderer.on('current-version', (e, version) => {
 ipcRenderer.on('config', (e, c) => {
     config = c;
     if (startMinimizedField) startMinimizedField.checked = config.startMinimized;
+
+    if (bigNavBarField) bigNavBarField.checked = config.bigNavBar;
 
     if (securityButtonField) securityButtonField.checked = config.securityButton;
     if (homeButtonField) homeButtonField.checked = config.homeButton;
@@ -47,6 +51,8 @@ function save() {
 
     config.startMinimized = formData.get('start-minimized') === 'on';
 
+    config.bigNavBar = formData.get('big-nav-bar') === 'on';
+
     config.securityButton = formData.get('security-button') === 'on';
     config.homeButton = formData.get('home-button') === 'on';
     config.backButton = formData.get('back-button') === 'on';
@@ -55,7 +61,7 @@ function save() {
 
     ipcRenderer.send('save-config', config);
     remote.getCurrentWindow().close();
-};
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     currentVersion = document.getElementById('current-version');
@@ -67,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     startMinimizedField = <HTMLInputElement>document.getElementById('start-minimized');
+
+    bigNavBarField = <HTMLInputElement>document.getElementById('big-nav-bar');
 
     securityButtonField = <HTMLInputElement>document.getElementById('security-button');
     homeButtonField = <HTMLInputElement>document.getElementById('home-button');
