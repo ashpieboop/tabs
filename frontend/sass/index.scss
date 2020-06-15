@@ -265,8 +265,20 @@ body {
     height: 100%;
 }
 
-#services > :not(.active):not(.loader):not(#url-preview) {
+#services > :not(.active):not(.loader):not(#url-preview):not(webview) {
     display: none;
+}
+
+#services > webview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background-color: rgb(43, 43, 43);
+}
+
+#services > webview.active {
+    z-index: 20;
 }
 
 #services > .loader {
