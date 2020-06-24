@@ -12,6 +12,10 @@ body {
 	flex-direction: column;
 	height: 100%;
 	width: var(--nav-width);
+
+	body.fullscreen & {
+		display: none;
+	}
 }
 
 #navigation > :not(#service-buttons) {

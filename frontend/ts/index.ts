@@ -835,3 +835,8 @@ function setContextMenu(webContents: WebContents) {
         });
     });
 }
+
+ipcRenderer.on('fullscreenchange', (e, fullscreen) => {
+    if (fullscreen) document.body.classList.add('fullscreen');
+    else document.body.classList.remove('fullscreen');
+});
