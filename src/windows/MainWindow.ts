@@ -129,6 +129,13 @@ export default class MainWindow extends Window {
             }
         });
 
+        window.on('enter-full-screen', () => {
+            window.webContents.send('fullscreenchange', true);
+        });
+        window.on('leave-full-screen', () => {
+            window.webContents.send('fullscreenchange', false);
+        });
+
         // Load navigation view
         window.loadFile(path.resolve(Meta.RESOURCES_PATH, 'index.html'))
             .catch(console.error);

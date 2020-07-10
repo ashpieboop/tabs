@@ -12,6 +12,10 @@ body {
 	flex-direction: column;
 	height: 100%;
 	width: var(--nav-width);
+
+	body.fullscreen & {
+		display: none;
+	}
 }
 
 #navigation > :not(#service-buttons) {
@@ -298,6 +302,7 @@ body {
 
 #url-preview {
 	position: absolute;
+	z-index: 10000;
 	bottom: 0;
 	left: 0;
 	display: block;
@@ -329,7 +334,7 @@ body {
 	border-radius: 5px 0 0 0;
 }
 
-#url-preview.hidden {
+#url-preview.invisible {
 	opacity: 0;
 }
 

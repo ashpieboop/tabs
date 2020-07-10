@@ -587,9 +587,9 @@ function loadService(serviceId: number, service: any) {
         // Display target urls
         service.view.addEventListener('update-target-url', (event: UpdateTargetUrlEvent) => {
             if (event.url.length === 0) {
-                urlPreview?.classList.add('hidden');
+                urlPreview?.classList.add('invisible');
             } else {
-                urlPreview?.classList.remove('hidden');
+                urlPreview?.classList.remove('invisible');
                 if (urlPreview) {
                     urlPreview.innerHTML = event.url;
                 }
@@ -835,3 +835,8 @@ function setContextMenu(webContents: WebContents) {
         });
     });
 }
+
+ipcRenderer.on('fullscreenchange', (e, fullscreen) => {
+    if (fullscreen) document.body.classList.add('fullscreen');
+    else document.body.classList.remove('fullscreen');
+});
