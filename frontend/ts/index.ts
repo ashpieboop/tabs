@@ -469,6 +469,7 @@ function loadService(serviceId: number, service: any) {
 
         document.querySelector('#services > .loader')?.classList.remove('hidden');
         service.view = document.createElement('webview');
+        updateNavigation(); // Start loading animation
         service.view.setAttribute('enableRemoteModule', 'false');
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
@@ -653,9 +654,15 @@ function updateNavigation() {
     for (let i = 0; i < services.length; i++) {
         const service = services[i];
 
+        if (!service.li) continue;
+
         // Active?
         if (parseInt(selectedService) === i) service.li.classList.add('active');
         else service.li.classList.remove('active');
+
+        // Loading?
+        if (service.view && !service.viewReady) service.li.classList.add('loading');
+        else service.li.classList.remove('loading');
 
         // Loaded?
         if (service.viewReady) service.li.classList.add('loaded');

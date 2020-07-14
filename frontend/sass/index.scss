@@ -7,6 +7,16 @@ body {
 	flex-direction: row;
 }
 
+#service-buttons {
+	flex-grow: 1;
+
+	overflow: hidden auto;
+}
+
+*:focus {
+	outline-color: rgb(118, 93, 176);
+}
+
 #navigation {
 	display: flex;
 	flex-direction: column;
@@ -16,16 +26,43 @@ body {
 	body.fullscreen & {
 		display: none;
 	}
-}
 
-#navigation > :not(#service-buttons) {
-	flex-shrink: 0;
-}
+	> :not(#service-buttons) {
+		flex-shrink: 0;
+	}
 
-#service-buttons {
-	flex-grow: 1;
+	button {
+		position: relative;
+		display: block;
+		width: var(--nav-width);
+		height: var(--nav-width);
+		margin: 0;
+		padding: 0;
 
-	overflow: hidden auto;
+		color: #fff;
+		border: 0;
+		background: transparent;
+
+		cursor: pointer;
+		border-radius: 0;
+
+		&:focus {
+			outline: none;
+			background: #fff3 !important;
+		}
+
+		&:hover {
+			background-color: #fff3;
+		}
+
+		i {
+			font-size: calc(var(--nav-width) / 2);
+		}
+
+		img {
+			width: calc(var(--nav-width) / 2);
+		}
+	}
 }
 
 #service-selector {
@@ -34,20 +71,76 @@ body {
 	padding: 0;
 
 	list-style: none;
-}
 
-#service-selector::-webkit-scrollbar {
-	width: 6px;
-}
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
 
-#service-selector [draggable] {
-	user-select: none;
-	background-color: rgb(43, 43, 43);
-}
+	li {
+		position: relative;
 
-#service-selector [draggable] img {
-	-webkit-user-drag: none;
-	user-drag: none;
+		button {
+			border-radius: 0;
+		}
+
+		&.active button {
+			background-color: #fff2;
+		}
+
+		&.loading, &.loaded {
+			button::before {
+				content: "";
+				display: block;
+				position: absolute;
+				right: 0;
+				top: 50%;
+				transform: translateY(-50%);
+				height: 75%;
+				border-right: 4px solid #ffffff3e;
+			}
+		}
+
+		&.loading button::before {
+			animation: loading-button-after linear 500ms infinite alternate;
+			height: 45%;
+
+			@keyframes loading-button-after {
+				from {
+					opacity: 0.1;
+				}
+				to {
+					opacity: 0.5;
+				}
+			}
+		}
+	}
+
+	[draggable] {
+		user-select: none;
+		background-color: rgb(43, 43, 43);
+
+		img {
+			-webkit-user-drag: none;
+			user-drag: none;
+		}
+	}
+
+	.drag-target-self button::after {
+		height: var(--nav-width);
+		border: 1px dashed #fff;
+		transform: none;
+	}
+
+	.drag-target button::after {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+	}
+
+	.drag-target::after {
+		top: 75% !important;
+	}
 }
 
 #service-selector .drag-target button::after,
@@ -58,96 +151,6 @@ body {
 	border: 0;
 	box-sizing: border-box;
 	background: #fff9;
-}
-
-#service-selector .drag-target-self button::after {
-	height: var(--nav-width);
-	border: 1px dashed #fff;
-	transform: none;
-}
-
-#service-selector .drag-target button::after {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-}
-
-#service-selector .drag-target::after {
-	top: 75% !important;
-}
-
-*:focus {
-	outline-color: rgb(118, 93, 176);
-}
-
-#navigation button {
-	position: relative;
-	display: block;
-	width: var(--nav-width);
-	height: var(--nav-width);
-	margin: 0;
-	padding: 0;
-
-	color: #fff;
-	border: 0;
-	background: transparent;
-
-	cursor: pointer;
-}
-
-#navigation button:focus {
-	outline: none;
-	background: #fff3 !important;
-}
-
-#navigation button img {
-	width: calc(var(--nav-width) / 2);
-}
-
-#navigation button i {
-	font-size: calc(var(--nav-width) / 2);
-}
-
-#service-selector li {
-	position: relative;
-}
-
-#service-selector li button,
-#navigation > button {
-	border-radius: 0;
-}
-
-#service-selector li.active button {
-	background-color: #fff2;
-}
-
-#service-selector li.loaded button::before {
-	content: "";
-	display: block;
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
-	height: 75%;
-	border-right: 4px solid #ffffff3e;
-}
-
-/*#service-selector li.loaded::after {*/
-/*    content: "";*/
-/*    position: absolute;*/
-/*    top: 50%;*/
-/*    right: 2px;*/
-/*    transform: translateY(-50%);*/
-/*    width: 4px;*/
-/*    height: 4px;*/
-
-/*    background-color: #fff;*/
-/*    border-radius: 100%;*/
-/*}*/
-
-#navigation button:hover {
-	background-color: #fff3;
 }
 
 #history {
