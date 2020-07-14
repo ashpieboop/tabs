@@ -3,6 +3,7 @@
     "files": "ts/files.ts",
     "layout": "sass/layout.scss",
     "index": "sass/index.scss",
+    "error": "sass/error.scss",
     "service-settings": "sass/service-settings.scss"
   }
 }

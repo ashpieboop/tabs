@@ -147,6 +147,7 @@ export default class MainWindow extends Window {
             Meta.ICON_SETS,
             this.activeService,
             path.resolve(Meta.RESOURCES_PATH, 'empty.html'),
+            path.resolve(Meta.RESOURCES_PATH, 'error.html'),
             this.config
         );
     }

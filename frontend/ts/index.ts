@@ -26,7 +26,7 @@ let securityButton: HTMLElement | null,
     backButton: HTMLElement | null,
     refreshButton: HTMLElement | null;
 let addButton, settingsButton;
-let emptyPage: string;
+let emptyPage: string, errorPage: string;
 let urlPreview: HTMLElement | null;
 let serviceSelector: HTMLElement | null;
 
@@ -128,7 +128,7 @@ function openServiceContextMenu(event: Event, serviceId: number) {
 }
 
 
-ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUrl, config) => {
+ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUrl, errorUrl, config) => {
     // App info
     appInfo.title = appData.title;
 
@@ -179,6 +179,7 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
 
     // Empty
     emptyPage = emptyUrl;
+    errorPage = errorUrl;
 
     // Url preview element
     urlPreview = document.getElementById("url-preview");
@@ -476,6 +477,11 @@ function loadService(serviceId: number, service: any) {
         // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
         // eventual future human mistakes.
         service.view.setAttribute('webpreferences', 'contextIsolation=yes');
+
+        // Error handling
+        service.view.addEventListener('did-fail-load', (e: Event) => {
+            service.view.setAttribute('src', errorPage);
+        });
 
         // Append element to DOM
         document.querySelector('#services')?.appendChild(service.view);
