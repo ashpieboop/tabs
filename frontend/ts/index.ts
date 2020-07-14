@@ -329,6 +329,8 @@ function createService(index: number, nextNavButton?: Element | null) {
             iconProperties.faIcon.split(' ').forEach((cl: string) => {
                 icon.classList.add(cl);
             });
+        } else {
+            icon.classList.add('fas', 'fa-circle');
         }
     }
 
