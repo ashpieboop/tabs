@@ -71,21 +71,27 @@ form {
 
     margin: 8px;
     grid-template-columns: 0fr auto 0fr;
-}
 
-.form-group > * {
-    margin: 8px;
-    padding: 8px;
-    white-space: nowrap;
-    align-self: center;
-}
+    &.no-expand {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
 
-.form-group > :first-child {
-    justify-self: end;
-}
+    > * {
+        margin: 8px;
+        padding: 8px;
+        white-space: nowrap;
+        align-self: center;
+    }
 
-.form-group > :not(:first-child) {
-    margin-left: 8px;
+    > :first-child {
+        justify-self: end;
+    }
+
+    > :not(:first-child) {
+        margin-left: 8px;
+    }
 }
 
 label.form-group {

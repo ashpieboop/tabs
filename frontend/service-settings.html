@@ -42,11 +42,18 @@
             <textarea name="customCSS" id="custom-css" rows="3"></textarea>
         </div>
 
-        <div class="form-group">
-            <label for="custom-user-agent">Custom UserAgent (i.e. google services)</label>
-            <input type="text" name="customUserAgent" id="custom-user-agent">
-            <button type="button" id="userAgentAutoFill">Auto-fill</button>
-        </div>
+        <fieldset>
+            <legend>Disguise</legend>
+            <div class="form-group">
+                <label for="custom-user-agent">Custom UserAgent (i.e. google services)</label>
+                <input type="text" name="customUserAgent" id="custom-user-agent">
+            </div>
+
+            <div class="form-group no-expand">
+                <button type="button" id="userAgentAutoFillFirefox">Disguise as firefox</button>
+                <button type="button" id="userAgentAutoFillChrome">Disguise as chrome</button>
+            </div>
+        </fieldset>
 
         <div id="icon-choice">
             <div class="form-group-header">
