@@ -72,10 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ipcRenderer.send('sync-settings');
 
-    document.getElementById('userAgentAutoFill')?.addEventListener('click', () => {
+    document.getElementById('userAgentAutoFillFirefox')?.addEventListener('click', () => {
         let customUserAgent = document.getElementById('custom-user-agent');
         if (customUserAgent) {
-            (<HTMLInputElement>customUserAgent).value = 'Mozilla/5.0 (X11; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0';
+            (<HTMLInputElement>customUserAgent).value = 'Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0';
+        }
+    });
+    document.getElementById('userAgentAutoFillChrome')?.addEventListener('click', () => {
+        let customUserAgent = document.getElementById('custom-user-agent');
+        if (customUserAgent) {
+            (<HTMLInputElement>customUserAgent).value = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36';
         }
     });
 });
@@ -200,7 +206,7 @@ function save() {
 
     ipcRenderer.send('saveService', serviceId, service);
     remote.getCurrentWindow().close();
-};
+}
 
 function isValid() {
     if (typeof service.name !== 'string' || service.name.length === 0) {

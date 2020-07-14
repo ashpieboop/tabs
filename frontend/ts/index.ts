@@ -26,7 +26,7 @@ let securityButton: HTMLElement | null,
     backButton: HTMLElement | null,
     refreshButton: HTMLElement | null;
 let addButton, settingsButton;
-let emptyPage: string;
+let emptyPage: string, errorPage: string;
 let urlPreview: HTMLElement | null;
 let serviceSelector: HTMLElement | null;
 
@@ -128,7 +128,7 @@ function openServiceContextMenu(event: Event, serviceId: number) {
 }
 
 
-ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUrl, config) => {
+ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUrl, errorUrl, config) => {
     // App info
     appInfo.title = appData.title;
 
@@ -179,6 +179,7 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
 
     // Empty
     emptyPage = emptyUrl;
+    errorPage = errorUrl;
 
     // Url preview element
     urlPreview = document.getElementById("url-preview");
@@ -212,13 +213,15 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
     document.documentElement.style.setProperty('--nav-width', config.bigNavBar ? '64px' : '48px');
 });
 
-function removeServiceFeatures(id: number): HTMLElement | null {
+function removeServiceFeatures(id: number): Element | null {
     // Remove nav
     const nav = document.querySelector('#service-selector');
     let oldNavButton: HTMLElement | null = null;
+    let nextSibling: Element | null = null;
     if (nav) {
         oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
         if (oldNavButton) {
+            nextSibling = oldNavButton.nextElementSibling;
             nav.removeChild(oldNavButton);
         }
     }
@@ -228,19 +231,21 @@ function removeServiceFeatures(id: number): HTMLElement | null {
         document.querySelector('#services')?.removeChild(services[id].view);
     }
 
-    return oldNavButton;
+    return nextSibling;
 }
 
 ipcRenderer.on('updateService', (e, id, data) => {
     if (id === null) {
+        console.log('Adding new service');
         services.push(data);
         createService(services.length - 1);
     } else {
-        const oldNavButton = removeServiceFeatures(id);
+        console.log('Updating existing service', id);
+        const nextSibling = removeServiceFeatures(id);
 
         // Create new service
         services[id] = data;
-        createService(id, oldNavButton ? oldNavButton.nextElementSibling : null);
+        createService(id, nextSibling);
         if (parseInt(selectedService) === id) {
             setActiveService(id);
         }
@@ -324,6 +329,8 @@ function createService(index: number, nextNavButton?: Element | null) {
             iconProperties.faIcon.split(' ').forEach((cl: string) => {
                 icon.classList.add(cl);
             });
+        } else {
+            icon.classList.add('fas', 'fa-circle');
         }
     }
 
@@ -464,6 +471,7 @@ function loadService(serviceId: number, service: any) {
 
         document.querySelector('#services > .loader')?.classList.remove('hidden');
         service.view = document.createElement('webview');
+        updateNavigation(); // Start loading animation
         service.view.setAttribute('enableRemoteModule', 'false');
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
@@ -472,6 +480,11 @@ function loadService(serviceId: number, service: any) {
         // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
         // eventual future human mistakes.
         service.view.setAttribute('webpreferences', 'contextIsolation=yes');
+
+        // Error handling
+        service.view.addEventListener('did-fail-load', (e: Event) => {
+            service.view.setAttribute('src', errorPage);
+        });
 
         // Append element to DOM
         document.querySelector('#services')?.appendChild(service.view);
@@ -643,9 +656,15 @@ function updateNavigation() {
     for (let i = 0; i < services.length; i++) {
         const service = services[i];
 
+        if (!service.li) continue;
+
         // Active?
         if (parseInt(selectedService) === i) service.li.classList.add('active');
         else service.li.classList.remove('active');
+
+        // Loading?
+        if (service.view && !service.viewReady) service.li.classList.add('loading');
+        else service.li.classList.remove('loading');
 
         // Loaded?
         if (service.viewReady) service.li.classList.add('loaded');
