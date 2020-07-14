@@ -212,13 +212,15 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
     document.documentElement.style.setProperty('--nav-width', config.bigNavBar ? '64px' : '48px');
 });
 
-function removeServiceFeatures(id: number): HTMLElement | null {
+function removeServiceFeatures(id: number): Element | null {
     // Remove nav
     const nav = document.querySelector('#service-selector');
     let oldNavButton: HTMLElement | null = null;
+    let nextSibling: Element | null = null;
     if (nav) {
         oldNavButton = nav.querySelector('li:nth-of-type(' + (id + 1) + ')');
         if (oldNavButton) {
+            nextSibling = oldNavButton.nextElementSibling;
             nav.removeChild(oldNavButton);
         }
     }
@@ -228,19 +230,21 @@ function removeServiceFeatures(id: number): HTMLElement | null {
         document.querySelector('#services')?.removeChild(services[id].view);
     }
 
-    return oldNavButton;
+    return nextSibling;
 }
 
 ipcRenderer.on('updateService', (e, id, data) => {
     if (id === null) {
+        console.log('Adding new service');
         services.push(data);
         createService(services.length - 1);
     } else {
-        const oldNavButton = removeServiceFeatures(id);
+        console.log('Updating existing service', id);
+        const nextSibling = removeServiceFeatures(id);
 
         // Create new service
         services[id] = data;
-        createService(id, oldNavButton ? oldNavButton.nextElementSibling : null);
+        createService(id, nextSibling);
         if (parseInt(selectedService) === id) {
             setActiveService(id);
         }

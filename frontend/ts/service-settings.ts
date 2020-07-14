@@ -206,7 +206,7 @@ function save() {
 
     ipcRenderer.send('saveService', serviceId, service);
     remote.getCurrentWindow().close();
-};
+}
 
 function isValid() {
     if (typeof service.name !== 'string' || service.name.length === 0) {
