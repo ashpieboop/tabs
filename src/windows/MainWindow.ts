@@ -146,8 +146,11 @@ export default class MainWindow extends Window {
             Meta.title,
             Meta.ICON_SETS,
             this.activeService,
-            path.resolve(Meta.RESOURCES_PATH, 'empty.html'),
-            path.resolve(Meta.RESOURCES_PATH, 'error.html'),
+            {
+                empty: path.resolve(Meta.RESOURCES_PATH, 'empty.html'),
+                connectionError: path.resolve(Meta.RESOURCES_PATH, 'connection_error.html'),
+                fileNotFound: path.resolve(Meta.RESOURCES_PATH, 'file_not_found_error.html'),
+            },
             this.config
         );
     }

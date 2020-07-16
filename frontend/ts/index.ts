@@ -1,5 +1,6 @@
 import {
     clipboard,
+    DidFailLoadEvent,
     ipcRenderer,
     PageFaviconUpdatedEvent,
     remote,
@@ -26,7 +27,7 @@ let securityButton: HTMLElement | null,
     backButton: HTMLElement | null,
     refreshButton: HTMLElement | null;
 let addButton, settingsButton;
-let emptyPage: string, errorPage: string;
+let pages: any;
 let urlPreview: HTMLElement | null;
 let serviceSelector: HTMLElement | null;
 
@@ -128,7 +129,7 @@ function openServiceContextMenu(event: Event, serviceId: number) {
 }
 
 
-ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUrl, errorUrl, config) => {
+ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, urls, config) => {
     // App info
     appInfo.title = appData.title;
 
@@ -178,8 +179,7 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, emptyUr
     setActiveService(actualSelectedService);
 
     // Empty
-    emptyPage = emptyUrl;
-    errorPage = errorUrl;
+    pages = urls;
 
     // Url preview element
     urlPreview = document.getElementById("url-preview");
@@ -475,15 +475,21 @@ function loadService(serviceId: number, service: any) {
         service.view.setAttribute('enableRemoteModule', 'false');
         service.view.setAttribute('partition', 'persist:service_' + service.partition);
         service.view.setAttribute('autosize', 'true');
-        service.view.setAttribute('src', emptyPage);
+        service.view.setAttribute('src', pages?.empty);
 
         // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
         // eventual future human mistakes.
         service.view.setAttribute('webpreferences', 'contextIsolation=yes');
 
         // Error handling
-        service.view.addEventListener('did-fail-load', (e: Event) => {
-            service.view.setAttribute('src', errorPage);
+        service.view.addEventListener('did-fail-load', (e: DidFailLoadEvent) => {
+            if (e.errorCode <= -100 && e.errorCode > -200) {
+                service.view.setAttribute('src', pages?.connectionError);
+            } else if (e.errorCode === -6) {
+                service.view.setAttribute('src', pages?.fileNotFound);
+            } else if (e.errorCode !== -3) {
+                console.error('Unhandled error:', e);
+            }
         });
 
         // Append element to DOM
