@@ -33,7 +33,7 @@
     "babel-loader": "^8.1.0",
     "concurrently": "^5.2.0",
     "copy-webpack-plugin": "^6.0.1",
-    "css-loader": "^3.5.3",
+    "css-loader": "^4.0.0",
     "electron": "^9.0.0",
     "electron-builder": "^22.4.0",
     "file-loader": "^6.0.0",
@@ -99,6 +99,6 @@
         }
       ]
     },
-    "electronVersion": "9.1.0"
+    "electronVersion": "9.1.1"
   }
 }
