@@ -43,7 +43,7 @@
     "imagemin-pngquant": "^9.0.0",
     "imagemin-svgo": "^8.0.0",
     "img-loader": "^3.0.1",
-    "mini-css-extract-plugin": "^0.10.0",
+    "mini-css-extract-plugin": "^0.11.0",
     "node-sass": "^4.14.1",
     "sass-loader": "^10.0.0",
     "ts-loader": "^8.0.0",
@@ -99,6 +99,6 @@
         }
       ]
     },
-    "electronVersion": "10.0.0"
+    "electronVersion": "10.1.0"
   }
 }
