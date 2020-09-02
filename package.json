@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -99,6 +99,6 @@
         }
       ]
     },
-    "electronVersion": "10.1.0"
+    "electronVersion": "10.1.1"
   }
 }
