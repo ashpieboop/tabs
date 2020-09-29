@@ -27,6 +27,7 @@
       "error",
       {
         "code": 120,
+        "ignoreStrings": true,
         "ignoreTemplateLiterals": true,
         "ignoreRegExpLiterals": true
       }
@@ -81,7 +82,8 @@
       {
         "accessibility": "explicit"
       }
-    ]
+    ],
+    "@typescript-eslint/no-floating-promises": "error"
   },
   "ignorePatterns": [
     "build/**/*",

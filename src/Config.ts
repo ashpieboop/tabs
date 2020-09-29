@@ -25,9 +25,11 @@ export default class Config {
 
     private properties: string[] = [];
 
-    constructor() {
+    [p: string]: unknown;
+
+    public constructor() {
         // Load data from config file
-        let data: any = {};
+        let data: Record<string, unknown> = {};
         if (fs.existsSync(configDir) && fs.statSync(configDir).isDirectory()) {
             if (fs.existsSync(configFile) && fs.statSync(configFile).isFile())
                 data = JSON.parse(fs.readFileSync(configFile, 'utf8'));
@@ -36,7 +38,7 @@ export default class Config {
         }
 
         // Parse services
-        if (typeof data.services === 'object') {
+        if (typeof data.services === 'object' && Array.isArray(data.services)) {
             let i = 0;
             for (const service of data.services) {
                 this.services[i] = new Service(service);
@@ -45,11 +47,18 @@ export default class Config {
         }
 
         if (this.services.length === 0) {
-            this.services.push(new Service('welcome', 'Welcome', 'rocket', false, 'https://github.com/ArisuOngaku/tabs', false));
+            this.services.push(new Service(
+                'welcome',
+                'Welcome',
+                'rocket',
+                false,
+                'https://github.com/ArisuOngaku/tabs',
+                false,
+            ));
         }
 
         this.defineProperty('updateCheckSkip', data);
-        
+
         this.defineProperty('startMinimized', data);
 
         this.defineProperty('bigNavBar', data);
@@ -63,25 +72,24 @@ export default class Config {
         this.save();
     }
 
-    save() {
+    public save(): void {
         console.log('Saving config');
-        this.services = this.services.filter(s => s !== null);
         fs.writeFileSync(configFile, JSON.stringify(this, null, 4));
         console.log('> Config saved to', configFile.toString());
     }
 
-    defineProperty(name: string, data: any) {
+    public defineProperty(name: string, data: Record<string, unknown>): void {
         if (data[name] !== undefined) {
-            (<any>this)[name] = data[name];
+            this[name] = data[name];
         }
 
         this.properties.push(name);
     }
 
-    update(data: any) {
+    public update(data: Record<string, unknown>): void {
         for (const prop of this.properties) {
             if (data[prop] !== undefined) {
-                (<any>this)[prop] = data[prop];
+                this[prop] = data[prop];
             }
         }
     }

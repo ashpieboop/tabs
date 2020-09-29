@@ -3,9 +3,10 @@ import path from "path";
 import Window from "../Window";
 import MainWindow from "./MainWindow";
 import Meta from "../Meta";
+import Config from "../Config";
 
 export default class SettingsWindow extends Window {
-    public setup() {
+    public setup(): void {
         super.setup({
             webPreferences: {
                 nodeIntegration: true,
@@ -21,7 +22,7 @@ export default class SettingsWindow extends Window {
 
         if (this.application.isDevMode()) {
             window.webContents.openDevTools({
-                mode: 'right'
+                mode: 'right',
             });
         }
 
@@ -36,7 +37,7 @@ export default class SettingsWindow extends Window {
             }).catch(console.error);
         });
 
-        this.onIpc('save-config', (e: Event, data: any) => {
+        this.onIpc('save-config', (e: Event, data: Config) => {
             this.config.update(data);
             this.config.save();
             if (this.parent instanceof MainWindow) {

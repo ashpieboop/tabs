@@ -3,7 +3,9 @@ import Application from "./Application";
 import Config from "./Config";
 
 export default abstract class Window {
-    private readonly listeners: { [channel: string]: ((event: IpcMainEvent, ...args: any[]) => void)[] } = {};
+    private readonly listeners: {
+        [channel: string]: ((event: IpcMainEvent, ...args: unknown[]) => void)[] | undefined
+    } = {};
     private readonly onCloseListeners: (() => void)[] = [];
 
     protected readonly application: Application;
@@ -18,7 +20,7 @@ export default abstract class Window {
     }
 
 
-    public setup(options: BrowserWindowConstructorOptions) {
+    public setup(options: BrowserWindowConstructorOptions): void {
         console.log('Creating window', this.constructor.name);
 
         if (this.parent) {
@@ -32,7 +34,7 @@ export default abstract class Window {
         });
     }
 
-    public teardown() {
+    public teardown(): void {
         console.log('Tearing down window', this.constructor.name);
 
         for (const listener of this.onCloseListeners) {
@@ -40,7 +42,10 @@ export default abstract class Window {
         }
 
         for (const channel in this.listeners) {
-            for (const listener of this.listeners[channel]) {
+            const listeners = this.listeners[channel];
+            if (!listeners) continue;
+
+            for (const listener of listeners) {
                 ipcMain.removeListener(channel, listener);
             }
         }
@@ -48,18 +53,20 @@ export default abstract class Window {
         this.window = undefined;
     }
 
+    // This is the spec of ipcMain.on()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     protected onIpc(channel: string, listener: (event: IpcMainEvent, ...args: any[]) => void): this {
         ipcMain.on(channel, listener);
         if (!this.listeners[channel]) this.listeners[channel] = [];
-        this.listeners[channel].push(listener);
+        this.listeners[channel]?.push(listener);
         return this;
     }
 
-    public onClose(listener: () => void) {
+    public onClose(listener: () => void): void {
         this.onCloseListeners.push(listener);
     }
 
-    public toggle() {
+    public toggle(): void {
         if (this.window) {
             if (!this.window.isFocused()) {
                 console.log('Showing window', this.constructor.name);

@@ -1,13 +1,18 @@
 import {
     clipboard,
+    ContextMenuParams,
     DidFailLoadEvent,
     ipcRenderer,
     PageFaviconUpdatedEvent,
     remote,
     shell,
     UpdateTargetUrlEvent,
-    WebContents
+    WebContents,
+    WebviewTag,
 } from "electron";
+import Service from "../../src/Service";
+import {IconProperties, IconSet, SpecialPages} from "../../src/Meta";
+import Config from "../../src/Config";
 
 const {
     Menu,
@@ -16,34 +21,38 @@ const {
     session,
 } = remote;
 
-const appInfo: any = {};
-let icons: any[] = [];
+const appInfo: {
+    title?: string;
+} = {};
+let icons: IconProperties[] = [];
 
-let services: any[] = [];
-let selectedService: any = null;
-let securityButton: HTMLElement | null,
-    homeButton: HTMLElement | null,
-    forwardButton: HTMLElement | null,
-    backButton: HTMLElement | null,
-    refreshButton: HTMLElement | null;
+let services: (FrontService | undefined)[] = [];
+let selectedServiceId: number | null = null;
+let securityButton: HTMLElement | null = null,
+    homeButton: HTMLElement | null = null,
+    forwardButton: HTMLElement | null = null,
+    backButton: HTMLElement | null = null,
+    refreshButton: HTMLElement | null = null;
 let addButton, settingsButton;
-let pages: any;
-let urlPreview: HTMLElement | null;
-let serviceSelector: HTMLElement | null;
+let specialPages: SpecialPages | null = null;
+let urlPreview: HTMLElement | null = null;
+let serviceSelector: HTMLElement | null = null;
 
 // Service reordering
-let lastDragPosition: HTMLElement | null, oldActiveService: number;
+let lastDragPosition: HTMLElement | null = null;
+let oldActiveService: number | null = null;
 
 // Service context menu
 function openServiceContextMenu(event: Event, serviceId: number) {
     event.preventDefault();
     const service = services[serviceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
 
     const menu = new Menu();
     const ready = service.view && service.viewReady, notReady = !service.view && !service.viewReady;
     menu.append(new MenuItem({
         label: 'Home', click: () => {
-            service.view.loadURL(service.url)
+            service.view?.loadURL(service.url)
                 .catch(console.error);
         },
         enabled: ready,
@@ -63,13 +72,13 @@ function openServiceContextMenu(event: Event, serviceId: number) {
 
     menu.append(new MenuItem({type: "separator"}));
 
-    let permissionsMenu = [];
+    const permissionsMenu = [];
     if (ready) {
-        for (const domain in service.permissions) {
-            if (service.permissions.hasOwnProperty(domain)) {
-                const domainPermissionsMenu = [];
+        for (const domain of Object.keys(service.permissions)) {
+            const domainPermissionsMenu = [];
 
-                const domainPermissions = service.permissions[domain];
+            const domainPermissions = service.permissions[domain];
+            if (domainPermissions) {
                 for (const permission of domainPermissions) {
                     domainPermissionsMenu.push({
                         label: (permission.authorized ? '✓' : '❌') + ' ' + permission.name,
@@ -82,18 +91,18 @@ function openServiceContextMenu(event: Event, serviceId: number) {
                         }, {
                             label: 'Forget',
                             click: () => {
-                                service.permissions[domain] = domainPermissions.filter((p: any) => p !== permission);
+                                service.permissions[domain] = domainPermissions.filter(p => p !== permission);
                             },
                         }],
                     });
                 }
+            }
 
-                if (domainPermissionsMenu.length > 0) {
-                    permissionsMenu.push({
-                        label: domain,
-                        submenu: domainPermissionsMenu,
-                    });
-                }
+            if (domainPermissionsMenu.length > 0) {
+                permissionsMenu.push({
+                    label: domain,
+                    submenu: domainPermissionsMenu,
+                });
             }
         }
     }
@@ -108,7 +117,7 @@ function openServiceContextMenu(event: Event, serviceId: number) {
     menu.append(new MenuItem({
         label: 'Edit', click: () => {
             ipcRenderer.send('openServiceSettings', serviceId);
-        }
+        },
     }));
     menu.append(new MenuItem({
         label: 'Delete', click: () => {
@@ -123,21 +132,31 @@ function openServiceContextMenu(event: Event, serviceId: number) {
                     ipcRenderer.send('deleteService', serviceId);
                 }
             }).catch(console.error);
-        }
+        },
     }));
     menu.popup({window: remote.getCurrentWindow()});
 }
 
 
-ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, urls, config) => {
+ipcRenderer.on('data', (
+    event,
+    appTitle: string,
+    iconSets: IconSet[],
+    activeServiceId: number,
+    _specialPages: SpecialPages,
+    config: Config,
+) => {
     // App info
-    appInfo.title = appData.title;
+    appInfo.title = appTitle;
 
     // Icons
     icons = [];
     for (const set of iconSets) {
-        icons = icons.concat(set);
+        icons.push(...set);
     }
+
+    // Special pages
+    specialPages = _specialPages;
 
     console.log('Updating services ...');
     services = config.services;
@@ -155,7 +174,7 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, urls, c
     }
 
     for (let i = 0; i < services.length; i++) {
-        createService(i);
+        createServiceNavigationElement(i);
     }
 
     // Init drag last position
@@ -165,7 +184,7 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, urls, c
             const index = services.length;
             if (draggedId !== index && draggedId !== index - 1) {
                 resetDrag();
-                lastDragTarget = dragTargetId = index;
+                lastDragTarget = index;
                 lastDragPosition?.classList.remove('hidden');
                 lastDragPosition?.classList.add('drag-target');
             }
@@ -173,22 +192,20 @@ ipcRenderer.on('data', (event, appData, iconSets, actualSelectedService, urls, c
     }
 
     // Set active service
-    if (actualSelectedService < 0 || actualSelectedService >= services.length) {
-        actualSelectedService = 0;
+    if (activeServiceId < 0 || activeServiceId >= services.length) {
+        activeServiceId = 0;
     }
-    setActiveService(actualSelectedService);
-
-    // Empty
-    pages = urls;
+    setActiveService(activeServiceId);
 
     // Url preview element
     urlPreview = document.getElementById("url-preview");
     if (urlPreview) {
+        const _urlPreview = urlPreview;
         urlPreview.addEventListener('mouseover', () => {
-            if (urlPreview!.classList.contains('right')) {
-                urlPreview!.classList.remove('right');
+            if (_urlPreview.classList.contains('right')) {
+                _urlPreview.classList.remove('right');
             } else {
-                urlPreview!.classList.add('right');
+                _urlPreview.classList.add('right');
             }
         });
     }
@@ -227,32 +244,34 @@ function removeServiceFeatures(id: number): Element | null {
     }
 
     // Remove webview
-    if (services[id] && services[id].view) {
-        document.querySelector('#services')?.removeChild(services[id].view);
+    const service = services[id];
+    if (service) {
+        const view = service.view;
+        if (view) document.querySelector('#services')?.removeChild(view);
     }
 
     return nextSibling;
 }
 
-ipcRenderer.on('updateService', (e, id, data) => {
+ipcRenderer.on('updateService', (e, id: number | null, data: Service) => {
     if (id === null) {
         console.log('Adding new service');
         services.push(data);
-        createService(services.length - 1);
+        createServiceNavigationElement(services.length - 1);
     } else {
         console.log('Updating existing service', id);
         const nextSibling = removeServiceFeatures(id);
 
         // Create new service
         services[id] = data;
-        createService(id, nextSibling);
-        if (parseInt(selectedService) === id) {
+        createServiceNavigationElement(id, nextSibling);
+        if (selectedServiceId === id) {
             setActiveService(id);
         }
     }
 });
 
-ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
+ipcRenderer.on('reorderService', (e, serviceId: number, targetId: number) => {
     const oldServices = services;
     services = [];
 
@@ -276,48 +295,56 @@ ipcRenderer.on('reorderService', (e, serviceId, targetId) => {
         serviceSelector.innerHTML = '';
     }
     for (let i = 0; i < services.length; i++) {
-        services[i].li = undefined;
-        createService(i);
+        const service = services[i];
+        if (service) service.li = undefined;
+        createServiceNavigationElement(i);
     }
     setActiveService(newId);
 });
 
-ipcRenderer.on('deleteService', (e, id) => {
+ipcRenderer.on('deleteService', (e, id: number) => {
     removeServiceFeatures(id);
 
-    if (parseInt(selectedService) === id) {
+    if (selectedServiceId === id) {
         setActiveService(0);
     }
 
-    delete services[id];
-    services = services.filter(s => s !== null);
+    services.splice(id, 1);
 });
 
-function createService(index: number, nextNavButton?: Element | null) {
-    let service = services[index];
-    let li = <any>document.createElement('li');
+function createServiceNavigationElement(index: number, nextNavButton?: Element | null) {
+    const service = services[index];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
+    const li = document.createElement('li') as NavigationElement;
     service.li = li;
 
-    let button = document.createElement('button');
+    const button = document.createElement('button');
     button.dataset.serviceId = '' + index;
     button.dataset.tooltip = service.name;
     button.addEventListener('click', () => {
-        if (button.dataset.serviceId) {
-            setActiveService(parseInt(button.dataset.serviceId));
+        const rawId = button.dataset.serviceId;
+        if (rawId) {
+            const id = parseInt(rawId);
+            setActiveService(id);
+            ipcRenderer.send('setActiveService', id);
         }
-        ipcRenderer.send('setActiveService', button.dataset.serviceId);
     });
     button.addEventListener('contextmenu', e => openServiceContextMenu(e, index));
 
-    let icon: any;
+    let icon: HTMLImageElement | HTMLElement;
     if (service.useFavicon && service.favicon != null) {
         icon = document.createElement('img');
-        icon.src = service.favicon;
-        icon.alt = service.name;
-    } else if (service.isImage) {
+        if (icon instanceof HTMLImageElement) {
+            icon.src = service.favicon;
+            icon.alt = service.name;
+        }
+    } else if (service.isImage && service.icon) {
         icon = document.createElement('img');
-        icon.src = service.icon;
-        icon.alt = service.name;
+        if (icon instanceof HTMLImageElement) {
+            icon.src = service.icon;
+            icon.alt = service.name;
+        }
     } else {
         icon = document.createElement('i');
         let iconProperties = icons.find(i => `${i.set}/${i.name}` === service.icon);
@@ -356,10 +383,8 @@ function createService(index: number, nextNavButton?: Element | null) {
 
 let draggedId: number;
 let lastDragTarget = -1;
-let dragTargetId = -1;
-let dragTargetCount = 0;
 
-function initDrag(index: number, li: any) {
+function initDrag(index: number, li: NavigationElement) {
     li.serviceId = index;
     li.draggable = true;
     li.addEventListener('dragstart', (event: DragEvent) => {
@@ -371,7 +396,7 @@ function initDrag(index: number, li: any) {
     });
     li.addEventListener('dragover', (e: DragEvent) => {
         let realIndex = index;
-        let rect = li.getBoundingClientRect();
+        const rect = li.getBoundingClientRect();
 
         if ((e.clientY - rect.y) / rect.height >= 0.5) {
             realIndex++;
@@ -382,12 +407,18 @@ function initDrag(index: number, li: any) {
         }
 
         resetDrag();
-        let el = realIndex === services.length ? lastDragPosition : services[realIndex].li;
-        lastDragTarget = dragTargetId = realIndex;
+        const el = realIndex === services.length ?
+            lastDragPosition :
+            services[realIndex]?.li;
+        lastDragTarget = realIndex;
         lastDragPosition?.classList.remove('hidden');
-        el.classList.add('drag-target');
 
-        if (draggedId === realIndex || draggedId === realIndex - 1) el.classList.add('drag-target-self');
+        if (el) {
+            el.classList.add('drag-target');
+
+            if (draggedId === realIndex || draggedId === realIndex - 1)
+                el.classList.add('drag-target-self');
+        }
     });
     li.addEventListener('dragend', () => {
         reorderService(draggedId, lastDragTarget);
@@ -397,8 +428,6 @@ function initDrag(index: number, li: any) {
 
 function resetDrag() {
     lastDragTarget = -1;
-    dragTargetId = -1;
-    dragTargetCount = 0;
     serviceSelector?.querySelectorAll('li').forEach(li => {
         li.classList.remove('drag-target');
         li.classList.remove('drag-target-self');
@@ -411,7 +440,7 @@ function resetDrag() {
 function reorderService(serviceId: number, targetId: number) {
     console.log('Reordering service', serviceId, targetId);
     if (targetId >= 0) {
-        oldActiveService = selectedService;
+        oldActiveService = selectedServiceId;
         setActiveService(-1);
         ipcRenderer.send('reorderService', serviceId, targetId);
     }
@@ -447,76 +476,78 @@ function setActiveService(serviceId: number) {
         }
 
         // Hide previous service
-        if (services[selectedService] && services[selectedService].view) {
-            services[selectedService].view.classList.remove('active');
+        if (typeof selectedServiceId === 'number') {
+            const selectedService = services[selectedServiceId];
+            if (selectedService && selectedService.view) {
+                selectedService.view.classList.remove('active');
+            }
         }
 
         // Show service
-        if (currentService) {
-            currentService.view.classList.add('active');
-        }
+        currentService?.view?.classList.add('active');
 
         // Save active service ID
-        selectedService = serviceId;
+        selectedServiceId = serviceId;
 
         // Refresh navigation
         updateNavigation();
     });
 }
 
-function loadService(serviceId: number, service: any) {
+function loadService(serviceId: number, service: FrontService) {
     // Load service if not loaded yet
     if (!service.view && !service.viewReady) {
         console.log('Loading service', serviceId);
 
         document.querySelector('#services > .loader')?.classList.remove('hidden');
-        service.view = document.createElement('webview');
+        const view = service.view = document.createElement('webview');
         updateNavigation(); // Start loading animation
-        service.view.setAttribute('enableRemoteModule', 'false');
-        service.view.setAttribute('partition', 'persist:service_' + service.partition);
-        service.view.setAttribute('autosize', 'true');
-        service.view.setAttribute('src', pages?.empty);
+        view.setAttribute('enableRemoteModule', 'false');
+        view.setAttribute('partition', 'persist:service_' + service.partition);
+        view.setAttribute('autosize', 'true');
+        if (specialPages) view.setAttribute('src', specialPages.empty);
 
         // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
         // eventual future human mistakes.
-        service.view.setAttribute('webpreferences', 'contextIsolation=yes');
+        view.setAttribute('webpreferences', 'contextIsolation=yes');
 
         // Error handling
-        service.view.addEventListener('did-fail-load', (e: DidFailLoadEvent) => {
+        view.addEventListener('did-fail-load', (e: DidFailLoadEvent) => {
             if (e.errorCode <= -100 && e.errorCode > -200) {
-                service.view.setAttribute('src', pages?.connectionError);
+                if (specialPages) view.setAttribute('src', specialPages.connectionError);
             } else if (e.errorCode === -6) {
-                service.view.setAttribute('src', pages?.fileNotFound);
+                if (specialPages) view.setAttribute('src', specialPages.fileNotFound);
             } else if (e.errorCode !== -3) {
                 console.error('Unhandled error:', e);
             }
         });
 
         // Append element to DOM
-        document.querySelector('#services')?.appendChild(service.view);
+        document.querySelector('#services')?.appendChild(view);
 
         // Load chain
-        let listener: Function;
-        service.view.addEventListener('dom-ready', listener = () => {
-            service.view.removeEventListener('dom-ready', listener);
+        let listener: () => void;
+        view.addEventListener('dom-ready', listener = () => {
+            view.removeEventListener('dom-ready', listener);
 
-            service.view.addEventListener('dom-ready', listener = () => {
+            view.addEventListener('dom-ready', listener = () => {
                 if (service.customCSS) {
-                    service.view.insertCSS(service.customCSS);
+                    view.insertCSS(service.customCSS)
+                        .catch(console.error);
                 }
 
                 document.querySelector('#services > .loader')?.classList.add('hidden');
-                service.li.classList.add('loaded');
+                service.li?.classList.add('loaded');
                 service.viewReady = true;
 
                 updateNavigation();
 
-                if (selectedService === null) {
+                if (selectedServiceId === null) {
                     setActiveService(serviceId);
                 }
             });
 
-            const webContents = remote.webContents.fromId(service.view.getWebContentsId());
+            const webContents = remote.webContents.fromId(view.getWebContentsId());
 
             // Set custom user agent
             if (typeof service.customUserAgent === 'string') {
@@ -528,7 +559,7 @@ function loadService(serviceId: number, service: any) {
 
             // Set permission request handler
             function getUrlDomain(url: string) {
-                let matches = url.match(/^https?:\/\/((.+?)\/|(.+))/i);
+                const matches = url.match(/^https?:\/\/((.+?)\/|(.+))/i);
                 if (matches !== null) {
                     let domain = matches[1];
                     if (domain.endsWith('/')) domain = domain.substr(0, domain.length - 1);
@@ -544,12 +575,12 @@ function loadService(serviceId: number, service: any) {
                 return domainPermissions;
             }
 
-            let serviceSession = session.fromPartition(service.view.partition);
-            serviceSession.setPermissionRequestHandler(((webContents, permissionName, callback, details) => {
-                let domain = getUrlDomain(details.requestingUrl);
-                let domainPermissions = getDomainPermissions(domain);
+            const serviceSession = session.fromPartition(view.partition);
+            serviceSession.setPermissionRequestHandler((webContents, permissionName, callback, details) => {
+                const domain = getUrlDomain(details.requestingUrl);
+                const domainPermissions = getDomainPermissions(domain);
 
-                let existingPermissions = domainPermissions.filter((p: any) => p.name === permissionName);
+                const existingPermissions = domainPermissions.filter(p => p.name === permissionName);
                 if (existingPermissions.length > 0) {
                     callback(existingPermissions[0].authorized);
                     return;
@@ -573,21 +604,21 @@ function loadService(serviceId: number, service: any) {
                     console.log(authorized ? 'Granted' : 'Denied', permissionName, 'for domain', domain);
                     callback(authorized);
                 }).catch(console.error);
-            }));
+            });
             serviceSession.setPermissionCheckHandler((webContents1, permissionName, requestingOrigin, details) => {
                 console.log('Permission check', permissionName, requestingOrigin, details);
-                let domain = getUrlDomain(details.requestingUrl);
-                let domainPermissions = getDomainPermissions(domain);
+                const domain = getUrlDomain(details.requestingUrl);
+                const domainPermissions = getDomainPermissions(domain);
 
-                let existingPermissions = domainPermissions.filter((p: any) => p.name === permissionName);
+                const existingPermissions = domainPermissions.filter(p => p.name === permissionName);
                 return existingPermissions.length > 0 && existingPermissions[0].authorized;
             });
 
-            service.view.setAttribute('src', service.url);
+            view.setAttribute('src', service.url);
         });
 
         // Load favicon
-        service.view.addEventListener('page-favicon-updated', (event: PageFaviconUpdatedEvent) => {
+        view.addEventListener('page-favicon-updated', (event: PageFaviconUpdatedEvent) => {
             console.debug('Loaded favicons for', service.name, event.favicons);
             if (event.favicons.length > 0 && service.favicon !== event.favicons[0]) {
                 ipcRenderer.send('setServiceFavicon', serviceId, event.favicons[0]);
@@ -596,15 +627,17 @@ function loadService(serviceId: number, service: any) {
                     img.src = event.favicons[0];
                     img.alt = service.name;
                     img.onload = () => {
-                        service.li.button.innerHTML = '';
-                        service.li.button.appendChild(img);
+                        if (service.li) {
+                            service.li.button.innerHTML = '';
+                            service.li.button.appendChild(img);
+                        }
                     };
                 }
             }
         });
 
         // Display target urls
-        service.view.addEventListener('update-target-url', (event: UpdateTargetUrlEvent) => {
+        view.addEventListener('update-target-url', (event: UpdateTargetUrlEvent) => {
             if (event.url.length === 0) {
                 urlPreview?.classList.add('invisible');
             } else {
@@ -619,21 +652,28 @@ function loadService(serviceId: number, service: any) {
 
 function unloadService(serviceId: number) {
     const service = services[serviceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
     if (service.view && service.viewReady) {
         service.view.remove();
-        service.view = null;
-        service.li.classList.remove('loaded');
+        service.view = undefined;
+        service.li?.classList.remove('loaded');
         service.viewReady = false;
 
-        if (parseInt(selectedService) === serviceId) {
-            selectedService = null;
+        if (selectedServiceId === serviceId) {
+            selectedServiceId = null;
+
             for (let i = 0; i < services.length; i++) {
-                if (services[i].view && services[i].viewReady) {
+                const otherService = services[i];
+                if (otherService && otherService.view && otherService.viewReady) {
                     setActiveService(i);
                     break;
                 }
             }
-            if (selectedService === null) {
+
+            // false positive:
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (selectedServiceId === null) {
                 updateNavigation();
             }
         }
@@ -642,6 +682,8 @@ function unloadService(serviceId: number) {
 
 function reloadService(serviceId: number) {
     const service = services[serviceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
     if (service.view && service.viewReady) {
         console.log('Reloading service', serviceId);
         document.querySelector('#services > .loader')?.classList.remove('hidden');
@@ -653,6 +695,8 @@ function reloadService(serviceId: number) {
 
 function updateServicePermissions(serviceId: number) {
     const service = services[serviceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
     ipcRenderer.send('updateServicePermissions', serviceId, service.permissions);
 }
 
@@ -661,11 +705,12 @@ function updateNavigation() {
     // Update active list element
     for (let i = 0; i < services.length; i++) {
         const service = services[i];
+        if (!service) continue;
 
         if (!service.li) continue;
 
         // Active?
-        if (parseInt(selectedService) === i) service.li.classList.add('active');
+        if (selectedServiceId === i) service.li.classList.add('active');
         else service.li.classList.remove('active');
 
         // Loading?
@@ -677,10 +722,10 @@ function updateNavigation() {
         else service.li.classList.remove('loaded');
     }
 
-    if (selectedService !== null && services[selectedService].viewReady) {
+    if (selectedServiceId !== null && services[selectedServiceId]?.viewReady) {
         console.debug('Updating navigation buttons because view is ready');
         // Update history navigation
-        let view = services[selectedService].view;
+        const view = services[selectedServiceId]?.view;
 
         homeButton?.classList.remove('disabled');
 
@@ -699,44 +744,59 @@ function updateNavigation() {
 }
 
 function updateStatusButton() {
-    let protocol = services[selectedService].view.getURL().split('://')[0];
-    if (!protocol) protocol = 'unknown';
-    for (const c of <any>securityButton?.children) {
-        if (c.classList.contains(protocol)) c.classList.add('active');
-        else c.classList.remove('active');
-    }
+    if (!selectedServiceId) return;
+    const protocol = services[selectedServiceId]?.view?.getURL().split('://')[0] || 'unknown';
+    securityButton?.childNodes.forEach(el => {
+        if (el instanceof HTMLElement) {
+            if (el.classList.contains(protocol)) el.classList.add('active');
+            else el.classList.remove('active');
+        }
+    });
 }
 
 function updateWindowTitle() {
-    if (selectedService === null) {
+    if (selectedServiceId === null) {
         ipcRenderer.send('updateWindowTitle', null);
-    } else if (services[selectedService].viewReady) {
-        ipcRenderer.send('updateWindowTitle', selectedService, remote.webContents.fromId(services[selectedService].view.getWebContentsId()).getTitle());
+    } else {
+        const service = services[selectedServiceId];
+        if (service?.viewReady && service.view) {
+            ipcRenderer.send('updateWindowTitle', selectedServiceId, remote.webContents.fromId(service.view.getWebContentsId()).getTitle());
+        }
     }
 }
 
 function goHome() {
-    let service = services[selectedService];
-    service.view.loadURL(service.url)
+    if (selectedServiceId === null) return;
+
+    const service = services[selectedServiceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
+    service.view?.loadURL(service.url)
         .catch(console.error);
 }
 
 function goForward() {
-    let view = services[selectedService].view;
+    if (selectedServiceId === null) return;
+
+    const view = services[selectedServiceId]?.view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goForward();
 }
 
 function goBack() {
-    let view = services[selectedService].view;
+    if (selectedServiceId === null) return;
+
+    const view = services[selectedServiceId]?.view;
     if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
 }
 
 function reload() {
-    reloadService(selectedService);
+    if (selectedServiceId === null) return;
+
+    reloadService(selectedServiceId);
 }
 
 function setContextMenu(webContents: WebContents) {
-    webContents.on('context-menu', (event, props) => {
+    webContents.on('context-menu', (event, props: ContextMenuParams) => {
         const menu = new Menu();
         const {editFlags} = props;
 
@@ -785,7 +845,8 @@ function setContextMenu(webContents: WebContents) {
         }
 
         // Text clipboard
-        if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste || editFlags.canDelete) {
+        if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste ||
+            editFlags.canDelete) {
             if (editFlags.canUndo || editFlags.canRedo) {
                 if (menu.items.length > 0) {
                     menu.append(new MenuItem({type: 'separator'}));
@@ -861,7 +922,18 @@ function setContextMenu(webContents: WebContents) {
     });
 }
 
-ipcRenderer.on('fullscreenchange', (e, fullscreen) => {
+ipcRenderer.on('fullscreenchange', (e, fullscreen: boolean) => {
     if (fullscreen) document.body.classList.add('fullscreen');
     else document.body.classList.remove('fullscreen');
 });
+
+type FrontService = Service & {
+    view?: WebviewTag;
+    viewReady?: boolean;
+    li?: NavigationElement;
+};
+
+type NavigationElement = HTMLLIElement & {
+    serviceId: number;
+    button: HTMLButtonElement;
+};

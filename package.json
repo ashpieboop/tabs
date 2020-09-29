@@ -12,8 +12,9 @@
   "scripts": {
     "clean": "(! test -d build || rm -r build) && (! test -d resources || rm -r resources)",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "compile": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode production",
-    "compile-dev": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode development",
+    "compile": "yarn compile-common && webpack --mode production",
+    "compile-dev": "yarn compile-common && webpack --mode development",
+    "compile-common": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && rm -r resources/js/src && mv resources/js/frontend/ts/* resources/js/ && rm -r resources/js/frontend",
     "start": "yarn compile && electron .",
     "dev": "yarn compile-dev && concurrently -k -n \"Electron,Webpack,TSC-Frontend\" -p \"[{name}]\" -c \"green,yellow\" \"electron . --dev\" \"webpack --mode development --watch\" \"tsc -p tsconfig.frontend.json --watch\"",
     "build": "yarn compile && electron-builder -wl",
