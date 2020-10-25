@@ -3,19 +3,20 @@ import {ipcMain} from "electron";
 import ServiceSettingsWindow from "./ServiceSettingsWindow";
 import SettingsWindow from "./SettingsWindow";
 import Application from "../Application";
-import Meta from "../Meta";
+import Meta, {SpecialPages} from "../Meta";
 import Window from "../Window";
+import {ServicePermissions} from "../Service";
 
 export default class MainWindow extends Window {
-    private activeService: number = 0;
+    private activeServiceId: number = 0;
     private serviceSettingsWindow?: ServiceSettingsWindow;
     private settingsWindow?: SettingsWindow;
 
-    constructor(application: Application) {
+    public constructor(application: Application) {
         super(application);
     }
 
-    public setup() {
+    public setup(): void {
         super.setup({
             webPreferences: {
                 nodeIntegration: true,
@@ -36,7 +37,7 @@ export default class MainWindow extends Window {
 
         if (this.application.isDevMode()) {
             window.webContents.openDevTools({
-                mode: 'right'
+                mode: 'right',
             });
         }
 
@@ -46,19 +47,19 @@ export default class MainWindow extends Window {
         });
 
         // Load active service
-        this.onIpc('setActiveService', (event, index) => {
+        this.onIpc('setActiveService', (event, index: number) => {
             this.setActiveService(index);
         });
 
         // Set a service's favicon
-        this.onIpc('setServiceFavicon', (event, index, favicon) => {
+        this.onIpc('setServiceFavicon', (event, index: number, favicon?: string) => {
             console.log('Setting service', index, 'favicon', favicon);
             this.config.services[index].favicon = favicon;
             this.config.save();
         });
 
         // Reorder services
-        this.onIpc('reorderService', (event, serviceId, targetId) => {
+        this.onIpc('reorderService', (event, serviceId: number, targetId: number) => {
             console.log('Reordering services', serviceId, targetId);
 
             const oldServices = this.config.services;
@@ -81,32 +82,32 @@ export default class MainWindow extends Window {
         });
 
         // Delete service
-        this.onIpc('deleteService', (e, id) => {
+        this.onIpc('deleteService', (e, id: number) => {
             console.log('Deleting service', id);
-            delete this.config.services[id];
+            this.config.services.splice(id, 1);
             this.config.save();
 
             window.webContents.send('deleteService', id);
         });
 
         // Update service permissions
-        ipcMain.on('updateServicePermissions', (e, serviceId, permissions) => {
+        ipcMain.on('updateServicePermissions', (e, serviceId: number, permissions: ServicePermissions) => {
             this.config.services[serviceId].permissions = permissions;
             this.config.save();
         });
 
         // Update window title
-        ipcMain.on('updateWindowTitle', (event, serviceId, viewTitle) => {
+        ipcMain.on('updateWindowTitle', (event, serviceId: number | null, viewTitle?: string) => {
             if (serviceId === null) {
                 window.setTitle(Meta.title);
-            } else {
+            } else if (viewTitle) {
                 const service = this.config.services[serviceId];
                 window.setTitle(Meta.getTitleForService(service, viewTitle));
             }
         });
 
         // Open service settings window
-        ipcMain.on('openServiceSettings', (e, serviceId) => {
+        ipcMain.on('openServiceSettings', (e, serviceId: number | null) => {
             if (!this.serviceSettingsWindow) {
                 console.log('Opening service settings', serviceId);
                 this.serviceSettingsWindow = new ServiceSettingsWindow(this.application, this, serviceId);
@@ -141,22 +142,22 @@ export default class MainWindow extends Window {
             .catch(console.error);
     }
 
-    public syncData() {
+    public syncData(): void {
         this.getWindow().webContents.send('data',
             Meta.title,
             Meta.ICON_SETS,
-            this.activeService,
-            {
+            this.activeServiceId,
+            <SpecialPages>{
                 empty: path.resolve(Meta.RESOURCES_PATH, 'empty.html'),
                 connectionError: path.resolve(Meta.RESOURCES_PATH, 'connection_error.html'),
                 fileNotFound: path.resolve(Meta.RESOURCES_PATH, 'file_not_found_error.html'),
             },
-            this.config
+            this.config,
         );
     }
 
     private setActiveService(index: number) {
         console.log('Set active service', index);
-        this.activeService = index;
+        this.activeServiceId = index;
     }
 }

@@ -1,8 +1,9 @@
 import {autoUpdater, UpdateInfo} from "electron-updater";
-import {dialog, shell} from "electron";
+import {dialog} from "electron";
 import Config from "./Config";
-import BrowserWindow = Electron.BrowserWindow;
 import Application from "./Application";
+import {SemVer} from "semver";
+import BrowserWindow = Electron.BrowserWindow;
 
 export default class Updater {
     private readonly config: Config;
@@ -36,7 +37,7 @@ export default class Updater {
         }
     }
 
-    public getCurrentVersion() {
+    public getCurrentVersion(): SemVer {
         return autoUpdater.currentVersion;
     }
 
@@ -54,7 +55,7 @@ export default class Updater {
                 checkboxLabel: `Don't remind me for this version`,
                 cancelId: 0,
                 defaultId: 1,
-                type: 'question'
+                type: 'question',
             });
 
             if (input.checkboxChecked) {

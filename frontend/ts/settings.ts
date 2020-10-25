@@ -1,10 +1,13 @@
 import {ipcRenderer, remote, shell} from "electron";
+import Config from "../../src/Config";
+import {SemVer} from "semver";
+import {UpdateInfo} from "electron-updater";
 
 let currentVersion: HTMLElement | null;
 let updateStatus: HTMLElement | null;
-let updateInfo: any;
+let updateInfo: UpdateInfo;
 let updateButton: HTMLElement | null;
-let config: any;
+let config: Config;
 
 let startMinimizedField: HTMLInputElement | null;
 
@@ -16,11 +19,11 @@ let securityButtonField: HTMLInputElement | null,
     forwardButtonField: HTMLInputElement | null,
     refreshButtonField: HTMLInputElement | null;
 
-ipcRenderer.on('current-version', (e, version) => {
+ipcRenderer.on('current-version', (e, version: SemVer) => {
     if (currentVersion) currentVersion.innerText = `Version: ${version.version}`;
 });
 
-ipcRenderer.on('config', (e, c) => {
+ipcRenderer.on('config', (e, c: Config) => {
     config = c;
     if (startMinimizedField) startMinimizedField.checked = config.startMinimized;
 
@@ -33,7 +36,7 @@ ipcRenderer.on('config', (e, c) => {
     if (refreshButtonField) refreshButtonField.checked = config.refreshButton;
 });
 
-ipcRenderer.on('updateStatus', (e, available, version) => {
+ipcRenderer.on('updateStatus', (e, available: boolean, version: UpdateInfo) => {
     console.log(available, version);
     updateInfo = version;
     if (available) {
@@ -45,7 +48,7 @@ ipcRenderer.on('updateStatus', (e, available, version) => {
 });
 
 function save() {
-    let form = document.querySelector('form');
+    const form = document.querySelector('form');
     if (!form) return;
     const formData = new FormData(form);
 

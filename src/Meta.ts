@@ -13,7 +13,7 @@ export default class Meta {
     public static readonly BRAND_ICONS = Meta.listIcons('brands');
     public static readonly SOLID_ICONS = Meta.listIcons('solid');
     public static readonly REGULAR_ICONS = Meta.listIcons('regular');
-    public static readonly ICON_SETS = [
+    public static readonly ICON_SETS: IconSet[] = [
         Meta.BRAND_ICONS,
         Meta.SOLID_ICONS,
         Meta.REGULAR_ICONS,
@@ -21,7 +21,7 @@ export default class Meta {
 
     private static devMode?: boolean;
 
-    public static isDevMode() {
+    public static isDevMode(): boolean {
         if (this.devMode === undefined) {
             this.devMode = process.argv.length > 2 && process.argv[2] === '--dev';
             console.debug('Dev mode:', this.devMode);
@@ -30,7 +30,7 @@ export default class Meta {
         return this.devMode;
     }
 
-    public static getTitleForService(service: Service, viewTitle: string) {
+    public static getTitleForService(service: Service, viewTitle: string): string {
         let suffix = '';
         if (viewTitle.length > 0) {
             suffix = ' - ' + viewTitle;
@@ -38,7 +38,7 @@ export default class Meta {
         return this.title + ' - ' + service.name + suffix;
     }
 
-    private static listIcons(set: string) {
+    private static listIcons(set: string): IconSet {
         console.log('Loading icon set', set);
         const directory = path.resolve(Meta.RESOURCES_PATH, `images/icons/${set}`);
         const icons: { name: string; faIcon: string; set: string; }[] = [];
@@ -51,3 +51,17 @@ export default class Meta {
         return icons;
     }
 }
+
+export type SpecialPages = {
+    empty: string;
+    connectionError: string;
+    fileNotFound: string;
+};
+
+export type IconProperties = {
+    name: string;
+    faIcon: string;
+    set: string;
+};
+
+export type IconSet = IconProperties[];

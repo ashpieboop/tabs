@@ -5,14 +5,14 @@ import Meta from "../Meta";
 import Service from "../Service";
 
 export default class ServiceSettingsWindow extends Window {
-    private readonly serviceId: number;
+    private readonly serviceId: number | null;
 
-    constructor(application: Application, parent: Window, serviceId: number) {
+    public constructor(application: Application, parent: Window, serviceId: number | null) {
         super(application, parent);
         this.serviceId = serviceId;
     }
 
-    public setup() {
+    public setup(): void {
         super.setup({
             webPreferences: {
                 nodeIntegration: true,
@@ -28,16 +28,20 @@ export default class ServiceSettingsWindow extends Window {
 
         if (this.application.isDevMode()) {
             window.webContents.openDevTools({
-                mode: 'right'
+                mode: 'right',
             });
         }
 
         this.onIpc('sync-settings', () => {
             window.webContents.send('syncIcons', Meta.ICON_SETS);
-            window.webContents.send('loadService', this.serviceId, this.config.services[this.serviceId]);
+            window.webContents.send('loadService',
+                this.serviceId, typeof this.serviceId === 'number' ?
+                    this.config.services[this.serviceId] :
+                    undefined,
+            );
         });
 
-        this.onIpc('saveService', (e, id, data) => {
+        this.onIpc('saveService', (e, id: number | null, data: Service) => {
             console.log('Saving service', id, data);
             const newService = new Service(data);
             if (typeof id === 'number') {
@@ -45,6 +49,8 @@ export default class ServiceSettingsWindow extends Window {
             } else {
                 this.config.services.push(newService);
                 id = this.config.services.indexOf(newService);
+
+                if (id < 0) id = null;
             }
             this.config.save();
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function requireAll(r: any) {
     r.keys().forEach(r);
 }

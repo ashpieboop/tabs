@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -11,12 +11,14 @@
   "main": "build/main.js",
   "scripts": {
     "clean": "(! test -d build || rm -r build) && (! test -d resources || rm -r resources)",
-    "compile": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode production",
-    "compile-dev": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && webpack --mode development",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "compile": "yarn compile-common && webpack --mode production",
+    "compile-dev": "yarn compile-common && webpack --mode development",
+    "compile-common": "yarn clean && tsc -p tsconfig.backend.json && tsc -p tsconfig.frontend.json && rm -r resources/js/src && mv resources/js/frontend/ts/* resources/js/ && rm -r resources/js/frontend",
     "start": "yarn compile && electron .",
     "dev": "yarn compile-dev && concurrently -k -n \"Electron,Webpack,TSC-Frontend\" -p \"[{name}]\" -c \"green,yellow\" \"electron . --dev\" \"webpack --mode development --watch\" \"tsc -p tsconfig.frontend.json --watch\"",
     "build": "yarn compile && electron-builder -wl",
-    "release": "yarn compile && GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always"
+    "release": "yarn lint && yarn compile && GH_TOKEN=$(cat GH_TOKEN) electron-builder -wlp always"
   },
   "dependencies": {
     "appdata-path": "^1.0.0",
@@ -30,12 +32,15 @@
     "@babel/preset-env": "^7.9.6",
     "@fortawesome/fontawesome-free": "^5.13.0",
     "@types/node": "^12.12.54",
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
     "babel-loader": "^8.1.0",
     "concurrently": "^5.2.0",
     "copy-webpack-plugin": "^6.0.1",
-    "css-loader": "^4.0.0",
+    "css-loader": "^5.0.0",
     "electron": "^10.0.0",
     "electron-builder": "^22.4.0",
+    "eslint": "^7.10.0",
     "file-loader": "^6.0.0",
     "imagemin": "^7.0.1",
     "imagemin-gifsicle": "^7.0.0",
@@ -43,13 +48,13 @@
     "imagemin-pngquant": "^9.0.0",
     "imagemin-svgo": "^8.0.0",
     "img-loader": "^3.0.1",
-    "mini-css-extract-plugin": "^0.11.0",
+    "mini-css-extract-plugin": "^1.2.0",
     "node-sass": "^4.14.1",
     "sass-loader": "^10.0.0",
     "ts-loader": "^8.0.0",
     "typescript": "^4.0.2",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^5.2.0",
+    "webpack-cli": "^4.1.0"
   },
   "build": {
     "appId": "tabs-app",
@@ -99,6 +104,6 @@
         }
       ]
     },
-    "electronVersion": "10.1.2"
+    "electronVersion": "10.1.5"
   }
 }

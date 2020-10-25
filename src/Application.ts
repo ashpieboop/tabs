@@ -12,7 +12,7 @@ export default class Application {
     private readonly mainWindow: MainWindow;
     private tray?: Tray;
 
-    constructor(devMode: boolean) {
+    public constructor(devMode: boolean) {
         this.devMode = devMode;
         this.config = new Config();
         this.updater = new Updater(this.config, this);
@@ -68,11 +68,12 @@ export default class Application {
 
         // Disable unused features
         app.on('web-contents-created', (e, contents) => {
-            contents.on('will-attach-webview', (e, webPreferences, params) => {
+            contents.on('will-attach-webview', (e, webPreferences) => {
                 delete webPreferences.preload;
                 webPreferences.nodeIntegration = false;
 
-                // TODO: Here would be a good place to filter accessed urls (params.src). Also  consider 'will-navigate' event on contents.
+                // TODO: Here would be a good place to filter accessed urls (params.src).
+                //  Also consider 'will-navigate' event on contents.
             });
         });
     }
@@ -85,7 +86,7 @@ export default class Application {
             {label: 'Tabs', enabled: false},
             {label: 'Open Tabs', click: () => this.mainWindow.getWindow().show()},
             {type: 'separator'},
-            {label: 'Quit', role: 'quit'}
+            {label: 'Quit', role: 'quit'},
         ]));
         this.tray.on('click', () => this.mainWindow.toggle());
     }
