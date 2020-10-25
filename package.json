@@ -37,7 +37,7 @@
     "babel-loader": "^8.1.0",
     "concurrently": "^5.2.0",
     "copy-webpack-plugin": "^6.0.1",
-    "css-loader": "^4.0.0",
+    "css-loader": "^5.0.0",
     "electron": "^10.0.0",
     "electron-builder": "^22.4.0",
     "eslint": "^7.10.0",
@@ -48,13 +48,13 @@
     "imagemin-pngquant": "^9.0.0",
     "imagemin-svgo": "^8.0.0",
     "img-loader": "^3.0.1",
-    "mini-css-extract-plugin": "^0.11.0",
+    "mini-css-extract-plugin": "^1.2.0",
     "node-sass": "^4.14.1",
     "sass-loader": "^10.0.0",
     "ts-loader": "^8.0.0",
     "typescript": "^4.0.2",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^5.2.0",
+    "webpack-cli": "^4.1.0"
   },
   "build": {
     "appId": "tabs-app",
@@ -104,6 +104,6 @@
         }
       ]
     },
-    "electronVersion": "10.1.3"
+    "electronVersion": "10.1.5"
   }
 }
