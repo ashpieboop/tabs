@@ -72,6 +72,34 @@ function openServiceContextMenu(event: Event, serviceId: number) {
 
     menu.append(new MenuItem({type: "separator"}));
 
+    menu.append(new MenuItem({
+        label: 'Reset zoom level', click: () => {
+            if (service.view) {
+                service.view.setZoomFactor(1);
+                service.view.setZoomLevel(0);
+            }
+        },
+        enabled: ready && service.view?.getZoomFactor() !== 1 && service.view?.getZoomLevel() !== 0,
+    }));
+    menu.append(new MenuItem({
+        label: 'Zoom in', click: () => {
+            if (service.view) {
+                service.view.setZoomLevel(service.view.getZoomLevel() + 1);
+            }
+        },
+        enabled: ready,
+    }));
+    menu.append(new MenuItem({
+        label: 'Zoom out', click: () => {
+            if (service.view) {
+                service.view.setZoomLevel(service.view.getZoomLevel() - 1);
+            }
+        },
+        enabled: ready,
+    }));
+
+    menu.append(new MenuItem({type: "separator"}));
+
     const permissionsMenu = [];
     if (ready) {
         for (const domain of Object.keys(service.permissions)) {
