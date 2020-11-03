@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.1.15",
+  "version": "1.2.0",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -49,7 +49,7 @@
     "imagemin-svgo": "^8.0.0",
     "img-loader": "^3.0.1",
     "mini-css-extract-plugin": "^1.2.0",
-    "node-sass": "^4.14.1",
+    "node-sass": "^5.0.0",
     "sass-loader": "^10.0.0",
     "ts-loader": "^8.0.0",
     "typescript": "^4.0.2",
