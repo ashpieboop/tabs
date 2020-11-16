@@ -1,6 +1,5 @@
-owner: ArisuOngaku
-repo: tabs
-provider: github
+provider: generic
+url: "https://update.eternae.ink/arisu/tabs"
 updaterCacheDirName: tabs-updater
 publisherName:
   - Alice Gaudon

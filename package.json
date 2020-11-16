@@ -62,6 +62,12 @@
       "resources/**/*",
       "build/**/*"
     ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://update.eternae.ink/arisu/tabs"
+      }
+    ],
     "linux": {
       "target": "AppImage",
       "icon": "resources/images/logo.png",
@@ -70,39 +76,18 @@
       "desktop": {
         "StartupWMClass": "Tabs",
         "MimeType": "x-scheme-handler/tabs"
-      },
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "ArisuOngaku",
-          "repo": "tabs"
-        }
-      ]
+      }
     },
     "win": {
       "target": "nsis",
       "icon": "resources/images/logo.png",
       "publisherName": "Alice Gaudon",
-      "verifyUpdateCodeSignature": "false",
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "ArisuOngaku",
-          "repo": "tabs"
-        }
-      ]
+      "verifyUpdateCodeSignature": "false"
     },
     "mac": {
       "target": "default",
       "icon": "resources/images/logo.png",
-      "category": "public.app-category.utilities",
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "ArisuOngaku",
-          "repo": "tabs"
-        }
-      ]
+      "category": "public.app-category.utilities"
     },
     "electronVersion": "10.1.5"
   }
