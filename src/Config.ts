@@ -52,7 +52,7 @@ export default class Config {
                 'Welcome',
                 'rocket',
                 false,
-                'https://github.com/ArisuOngaku/tabs',
+                'https://eternae.ink/arisu/tabs',
                 false,
             ));
         }

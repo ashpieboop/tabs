@@ -772,7 +772,8 @@ function updateNavigation() {
 }
 
 function updateStatusButton() {
-    if (!selectedServiceId) return;
+    if (typeof selectedServiceId !== 'number') return;
+
     const protocol = services[selectedServiceId]?.view?.getURL().split('://')[0] || 'unknown';
     securityButton?.childNodes.forEach(el => {
         if (el instanceof HTMLElement) {

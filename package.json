@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -89,6 +89,6 @@
       "icon": "resources/images/logo.png",
       "category": "public.app-category.utilities"
     },
-    "electronVersion": "11.0.0"
+    "electronVersion": "11.0.3"
   }
 }
