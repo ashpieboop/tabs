@@ -89,6 +89,6 @@
       "icon": "resources/images/logo.png",
       "category": "public.app-category.utilities"
     },
-    "electronVersion": "11.0.3"
+    "electronVersion": "11.2.0"
   }
 }
