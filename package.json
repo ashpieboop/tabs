@@ -6,7 +6,7 @@
     "name": "Alice Gaudon",
     "email": "alice@gaudon.pro"
   },
-  "homepage": "https://github.com/ArisuOngaku/tabs",
+  "homepage": "https://eternae.ink/ashpie/tabs",
   "license": "GPL-3.0-only",
   "main": "build/main.js",
   "scripts": {
