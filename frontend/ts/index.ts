@@ -1,25 +1,13 @@
 import {
-    clipboard,
-    ContextMenuParams,
     DidFailLoadEvent,
     ipcRenderer,
     PageFaviconUpdatedEvent,
-    remote,
-    shell,
     UpdateTargetUrlEvent,
-    WebContents,
     WebviewTag,
 } from "electron";
 import Service from "../../src/Service";
 import {IconProperties, IconSet, SpecialPages} from "../../src/Meta";
 import Config from "../../src/Config";
-
-const {
-    Menu,
-    MenuItem,
-    dialog,
-    session,
-} = remote;
 
 const appInfo: {
     title?: string;
@@ -41,129 +29,6 @@ let serviceSelector: HTMLElement | null = null;
 // Service reordering
 let lastDragPosition: HTMLElement | null = null;
 let oldActiveService: number | null = null;
-
-// Service context menu
-function openServiceContextMenu(event: Event, serviceId: number) {
-    event.preventDefault();
-    const service = services[serviceId];
-    if (!service) throw new Error('Service doesn\'t exist.');
-
-    const menu = new Menu();
-    const ready = service.view && service.viewReady, notReady = !service.view && !service.viewReady;
-    menu.append(new MenuItem({
-        label: 'Home', click: () => {
-            service.view?.loadURL(service.url)
-                .catch(console.error);
-        },
-        enabled: ready,
-    }));
-    menu.append(new MenuItem({
-        label: ready ? 'Reload' : 'Load', click: () => {
-            reloadService(serviceId);
-        },
-        enabled: ready || notReady,
-    }));
-    menu.append(new MenuItem({
-        label: 'Close', click: () => {
-            unloadService(serviceId);
-        },
-        enabled: ready,
-    }));
-
-    menu.append(new MenuItem({type: "separator"}));
-
-    menu.append(new MenuItem({
-        label: 'Reset zoom level', click: () => {
-            if (service.view) {
-                service.view.setZoomFactor(1);
-                service.view.setZoomLevel(0);
-            }
-        },
-        enabled: ready && service.view?.getZoomFactor() !== 1 && service.view?.getZoomLevel() !== 0,
-    }));
-    menu.append(new MenuItem({
-        label: 'Zoom in', click: () => {
-            if (service.view) {
-                service.view.setZoomLevel(service.view.getZoomLevel() + 1);
-            }
-        },
-        enabled: ready,
-    }));
-    menu.append(new MenuItem({
-        label: 'Zoom out', click: () => {
-            if (service.view) {
-                service.view.setZoomLevel(service.view.getZoomLevel() - 1);
-            }
-        },
-        enabled: ready,
-    }));
-
-    menu.append(new MenuItem({type: "separator"}));
-
-    const permissionsMenu = [];
-    if (ready) {
-        for (const domain of Object.keys(service.permissions)) {
-            const domainPermissionsMenu = [];
-
-            const domainPermissions = service.permissions[domain];
-            if (domainPermissions) {
-                for (const permission of domainPermissions) {
-                    domainPermissionsMenu.push({
-                        label: (permission.authorized ? '✓' : '❌') + ' ' + permission.name,
-                        submenu: [{
-                            label: 'Toggle',
-                            click: () => {
-                                permission.authorized = !permission.authorized;
-                                updateServicePermissions(serviceId);
-                            },
-                        }, {
-                            label: 'Forget',
-                            click: () => {
-                                service.permissions[domain] = domainPermissions.filter(p => p !== permission);
-                            },
-                        }],
-                    });
-                }
-            }
-
-            if (domainPermissionsMenu.length > 0) {
-                permissionsMenu.push({
-                    label: domain,
-                    submenu: domainPermissionsMenu,
-                });
-            }
-        }
-    }
-    menu.append(new MenuItem({
-        label: 'Permissions',
-        enabled: ready,
-        submenu: permissionsMenu,
-    }));
-
-    menu.append(new MenuItem({type: "separator"}));
-
-    menu.append(new MenuItem({
-        label: 'Edit', click: () => {
-            ipcRenderer.send('openServiceSettings', serviceId);
-        },
-    }));
-    menu.append(new MenuItem({
-        label: 'Delete', click: () => {
-            dialog.showMessageBox(remote.getCurrentWindow(), {
-                type: 'question',
-                title: 'Confirm',
-                message: 'Are you sure you want to delete this service?',
-                buttons: ['Cancel', 'Confirm'],
-                cancelId: 0,
-            }).then(result => {
-                if (result.response === 1) {
-                    ipcRenderer.send('deleteService', serviceId);
-                }
-            }).catch(console.error);
-        },
-    }));
-    menu.popup({window: remote.getCurrentWindow()});
-}
 
 
 ipcRenderer.on('data', (
@@ -256,6 +121,44 @@ ipcRenderer.on('data', (
 
     // Navbar size
     document.documentElement.style.setProperty('--nav-width', config.bigNavBar ? '64px' : '48px');
+});
+
+ipcRenderer.on('load-service-home', (event, serviceId: number) => {
+    const service = services[serviceId];
+    if (!service) throw new Error('Service doesn\'t exist.');
+
+    service.view?.loadURL(service.url)
+        .catch(console.error);
+});
+
+ipcRenderer.on('reload-service', (event, serviceId: number) => {
+    reloadService(serviceId);
+});
+
+ipcRenderer.on('unload-service', (event, serviceId: number) => {
+    unloadService(serviceId);
+});
+
+ipcRenderer.on('reset-service-zoom-level', (event, serviceId: number) => {
+    const service = services[serviceId];
+    if (service?.view) {
+        service.view.setZoomFactor(1);
+        service.view.setZoomLevel(0);
+    }
+});
+
+ipcRenderer.on('zoom-in-service', (event, serviceId: number) => {
+    const service = services[serviceId];
+    if (service?.view) {
+        service.view.setZoomLevel(service.view.getZoomLevel() + 1);
+    }
+});
+
+ipcRenderer.on('zoom-out-service', (event, serviceId: number) => {
+    const service = services[serviceId];
+    if (service?.view) {
+        service.view.setZoomLevel(service.view.getZoomLevel() - 1);
+    }
 });
 
 function removeServiceFeatures(id: number): Element | null {
@@ -358,7 +261,20 @@ function createServiceNavigationElement(index: number, nextNavButton?: Element |
             ipcRenderer.send('setActiveService', id);
         }
     });
-    button.addEventListener('contextmenu', e => openServiceContextMenu(e, index));
+    button.addEventListener('contextmenu', e => {
+        e.preventDefault();
+
+        const service = services[index];
+        if (!service) throw new Error('Service doesn\'t exist.');
+
+        ipcRenderer.send(
+            'open-service-navigation-context-menu',
+            index,
+            !!service.view && !!service.viewReady,
+            !service.view && !service.viewReady,
+            service.view?.getZoomFactor() !== 1 && service.view?.getZoomLevel() !== 0,
+        );
+    });
 
     let icon: HTMLImageElement | HTMLElement;
     if (service.useFavicon && service.favicon != null) {
@@ -490,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshButton?.addEventListener('click', () => reload());
 
     addButton = document.getElementById('add-button');
-    addButton?.addEventListener('click', () => ipcRenderer.send('openServiceSettings', null));
+    addButton?.addEventListener('click', () => ipcRenderer.send('create-new-service', null));
 
     settingsButton = document.getElementById('settings-button');
     settingsButton?.addEventListener('click', () => ipcRenderer.send('openSettings', null));
@@ -571,72 +487,17 @@ function loadService(serviceId: number, service: FrontService) {
                 }
             });
 
-            const webContents = remote.webContents.fromId(view.getWebContentsId());
 
             // Set custom user agent
             if (typeof service.customUserAgent === 'string') {
-                webContents.setUserAgent(service.customUserAgent);
+                ipcRenderer.send('set-web-contents-user-agent', view.getWebContentsId(), service.customUserAgent);
             }
 
             // Set context menu
-            setContextMenu(webContents);
+            ipcRenderer.send('open-service-content-context-menu', view.getWebContentsId());
 
             // Set permission request handler
-            function getUrlDomain(url: string) {
-                const matches = url.match(/^https?:\/\/((.+?)\/|(.+))/i);
-                if (matches !== null) {
-                    let domain = matches[1];
-                    if (domain.endsWith('/')) domain = domain.substr(0, domain.length - 1);
-                    return domain;
-                }
-
-                return '';
-            }
-
-            function getDomainPermissions(domain: string) {
-                let domainPermissions = service.permissions[domain];
-                if (!domainPermissions) domainPermissions = service.permissions[domain] = [];
-                return domainPermissions;
-            }
-
-            const serviceSession = session.fromPartition(view.partition);
-            serviceSession.setPermissionRequestHandler((webContents, permissionName, callback, details) => {
-                const domain = getUrlDomain(details.requestingUrl);
-                const domainPermissions = getDomainPermissions(domain);
-
-                const existingPermissions = domainPermissions.filter(p => p.name === permissionName);
-                if (existingPermissions.length > 0) {
-                    callback(existingPermissions[0].authorized);
-                    return;
-                }
-
-                dialog.showMessageBox(remote.getCurrentWindow(), {
-                    type: 'question',
-                    title: 'Grant ' + permissionName + ' permission',
-                    message: 'Do you wish to grant the ' + permissionName + ' permission to ' + domain + '?',
-                    buttons: ['Deny', 'Authorize'],
-                    cancelId: 0,
-                }).then(result => {
-                    const authorized = result.response === 1;
-
-                    domainPermissions.push({
-                        name: permissionName,
-                        authorized: authorized,
-                    });
-                    updateServicePermissions(serviceId);
-
-                    console.log(authorized ? 'Granted' : 'Denied', permissionName, 'for domain', domain);
-                    callback(authorized);
-                }).catch(console.error);
-            });
-            serviceSession.setPermissionCheckHandler((webContents1, permissionName, requestingOrigin, details) => {
-                console.log('Permission check', permissionName, requestingOrigin, details);
-                const domain = getUrlDomain(details.requestingUrl);
-                const domainPermissions = getDomainPermissions(domain);
-
-                const existingPermissions = domainPermissions.filter(p => p.name === permissionName);
-                return existingPermissions.length > 0 && existingPermissions[0].authorized;
-            });
+            ipcRenderer.send('set-partition-permissions', serviceId, view.partition);
 
             view.setAttribute('src', service.url);
         });
@@ -717,13 +578,6 @@ function reloadService(serviceId: number) {
     }
 }
 
-function updateServicePermissions(serviceId: number) {
-    const service = services[serviceId];
-    if (!service) throw new Error('Service doesn\'t exist.');
-
-    ipcRenderer.send('updateServicePermissions', serviceId, service.permissions);
-}
-
 function updateNavigation() {
     console.debug('Updating navigation');
     // Update active list element
@@ -781,11 +635,11 @@ function updateStatusButton() {
 
 function updateWindowTitle() {
     if (selectedServiceId === null) {
-        ipcRenderer.send('updateWindowTitle', null);
+        ipcRenderer.send('update-window-title', null);
     } else {
         const service = services[selectedServiceId];
         if (service?.viewReady && service.view) {
-            ipcRenderer.send('updateWindowTitle', selectedServiceId, remote.webContents.fromId(service.view.getWebContentsId()).getTitle());
+            ipcRenderer.send('update-window-title', selectedServiceId, service.view.getWebContentsId());
         }
     }
 }
@@ -804,147 +658,20 @@ function goForward() {
     if (selectedServiceId === null) return;
 
     const view = services[selectedServiceId]?.view;
-    if (view) remote.webContents.fromId(view.getWebContentsId()).goForward();
+    if (view) ipcRenderer.send('go-forward', view.getWebContentsId());
 }
 
 function goBack() {
     if (selectedServiceId === null) return;
 
     const view = services[selectedServiceId]?.view;
-    if (view) remote.webContents.fromId(view.getWebContentsId()).goBack();
+    if (view) ipcRenderer.send('go-back', view.getWebContentsId());
 }
 
 function reload() {
     if (selectedServiceId === null) return;
 
     reloadService(selectedServiceId);
-}
-
-function setContextMenu(webContents: WebContents) {
-    webContents.on('context-menu', (event, props: ContextMenuParams) => {
-        const menu = new Menu();
-        const {editFlags} = props;
-
-        // linkURL
-        if (props.linkURL.length > 0) {
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({type: 'separator'}));
-            }
-
-            menu.append(new MenuItem({
-                label: 'Copy link URL',
-                click: () => {
-                    clipboard.writeText(props.linkURL);
-                },
-            }));
-            menu.append(new MenuItem({
-                label: 'Open URL in default browser',
-                click: () => {
-                    if (props.linkURL.startsWith('https://')) {
-                        shell.openExternal(props.linkURL)
-                            .catch(console.error);
-                    }
-                },
-            }));
-        }
-
-        // Image
-        if (props.hasImageContents) {
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({type: 'separator'}));
-            }
-
-            menu.append(new MenuItem({
-                label: 'Copy image',
-                click: () => {
-                    webContents.copyImageAt(props.x, props.y);
-                },
-            }));
-
-            menu.append(new MenuItem({
-                label: 'Save image as',
-                click: () => {
-                    webContents.downloadURL(props.srcURL);
-                },
-            }));
-        }
-
-        // Text clipboard
-        if (editFlags.canUndo || editFlags.canRedo || editFlags.canCut || editFlags.canCopy || editFlags.canPaste ||
-            editFlags.canDelete) {
-            if (editFlags.canUndo || editFlags.canRedo) {
-                if (menu.items.length > 0) {
-                    menu.append(new MenuItem({type: 'separator'}));
-                }
-
-                if (editFlags.canUndo) {
-                    menu.append(new MenuItem({
-                        label: 'Undo',
-                        role: 'undo',
-                    }));
-                }
-                if (editFlags.canRedo) {
-                    menu.append(new MenuItem({
-                        label: 'Redo',
-                        role: 'redo',
-                    }));
-                }
-            }
-
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({type: 'separator'}));
-            }
-
-            menu.append(new MenuItem({
-                label: 'Cut',
-                role: 'cut',
-                enabled: editFlags.canCut,
-            }));
-            menu.append(new MenuItem({
-                label: 'Copy',
-                role: 'copy',
-                enabled: editFlags.canCopy,
-            }));
-            menu.append(new MenuItem({
-                label: 'Paste',
-                role: 'paste',
-                enabled: editFlags.canPaste,
-            }));
-            menu.append(new MenuItem({
-                label: 'Delete',
-                role: 'delete',
-                enabled: editFlags.canDelete,
-            }));
-        }
-
-        if (editFlags.canSelectAll) {
-            if (menu.items.length > 0) {
-                menu.append(new MenuItem({type: 'separator'}));
-            }
-
-            menu.append(new MenuItem({
-                label: 'Select all',
-                role: 'selectAll',
-            }));
-        }
-
-        // Inspect element
-        if (menu.items.length > 0) {
-            menu.append(new MenuItem({type: 'separator'}));
-        }
-
-        menu.append(new MenuItem({
-            label: 'Inspect element',
-            click: () => {
-                webContents.inspectElement(props.x, props.y);
-            },
-        }));
-
-
-        menu.popup({
-            window: remote.getCurrentWindow(),
-        });
-    });
 }
 
 ipcRenderer.on('fullscreenchange', (e, fullscreen: boolean) => {

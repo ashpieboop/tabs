@@ -1,4 +1,4 @@
-import {ipcRenderer, remote} from "electron";
+import {ipcRenderer} from "electron";
 import Service from "../../src/Service";
 import {IconProperties, IconSet} from "../../src/Meta";
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('cancel-button')?.addEventListener('click', e => {
         e.preventDefault();
-        remote.getCurrentWindow().close();
+        ipcRenderer.send('close-window', 'ServiceSettingsWindow');
     });
 
     document.querySelector('form')?.addEventListener('submit', e => {
@@ -226,7 +226,7 @@ function save() {
     }
 
     ipcRenderer.send('saveService', serviceId, service);
-    remote.getCurrentWindow().close();
+    ipcRenderer.send('close-window', 'ServiceSettingsWindow');
 }
 
 function isValid() {

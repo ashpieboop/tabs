@@ -32,6 +32,19 @@ export default abstract class Window {
             this.teardown();
             this.window = undefined;
         });
+
+        this.onIpc('close-window', (
+            event,
+            constructorName: string,
+        ) => {
+            if (constructorName === this.constructor.name) {
+                console.log('Closing', this.constructor.name);
+                const window = this.getWindow();
+                if (window.closable) {
+                    window.close();
+                }
+            }
+        });
     }
 
     public teardown(): void {
@@ -80,6 +93,7 @@ export default abstract class Window {
 
     public getWindow(): BrowserWindow {
         if (!this.window) throw Error('Window not initialized.');
+        else if (this.window.isDestroyed()) throw Error('Window destroyed.');
         return this.window;
     }
 }
