@@ -22,6 +22,7 @@ export default class MainWindow extends Window {
                 nodeIntegration: true,
                 enableRemoteModule: true,
                 webviewTag: true,
+                contextIsolation: false,
             },
             autoHideMenuBar: true,
             icon: Meta.ICON_PATH,

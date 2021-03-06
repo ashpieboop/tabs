@@ -12,6 +12,7 @@ export default class SettingsWindow extends Window {
                 nodeIntegration: true,
                 enableRemoteModule: true,
                 webviewTag: true,
+                contextIsolation: false,
             },
             modal: true,
             autoHideMenuBar: true,
