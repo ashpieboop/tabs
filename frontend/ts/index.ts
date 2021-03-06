@@ -535,10 +535,6 @@ function loadService(serviceId: number, service: FrontService) {
         view.setAttribute('autosize', 'true');
         if (specialPages) view.setAttribute('src', specialPages.empty);
 
-        // Enable context isolation. This is currently not used as there is no preload script; however it could prevent
-        // eventual future human mistakes.
-        view.setAttribute('webpreferences', 'contextIsolation=yes');
-
         // Error handling
         view.addEventListener('did-fail-load', (e: DidFailLoadEvent) => {
             if (e.errorCode <= -100 && e.errorCode > -200) {
