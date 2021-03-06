@@ -10,8 +10,8 @@ export default class SettingsWindow extends Window {
         super.setup({
             webPreferences: {
                 nodeIntegration: true,
-                enableRemoteModule: true,
                 webviewTag: true,
+                contextIsolation: false,
             },
             modal: true,
             autoHideMenuBar: true,

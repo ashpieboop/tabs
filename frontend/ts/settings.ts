@@ -1,4 +1,4 @@
-import {ipcRenderer, remote, shell} from "electron";
+import {ipcRenderer, shell} from "electron";
 import Config from "../../src/Config";
 import {SemVer} from "semver";
 import {UpdateInfo} from "electron-updater";
@@ -63,7 +63,7 @@ function save() {
     config.refreshButton = formData.get('refresh-button') === 'on';
 
     ipcRenderer.send('save-config', config);
-    remote.getCurrentWindow().close();
+    ipcRenderer.send('close-window', 'SettingsWindow');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus = document.getElementById('update-status');
     updateButton = document.getElementById('download-button');
     updateButton?.addEventListener('click', () => {
-        shell.openExternal(`https://update.eternae.ink/arisu/tabs/${updateInfo.path}`)
+        shell.openExternal(`https://update.eternae.ink/ashpie/tabs/${updateInfo.path}`)
             .catch(console.error);
     });
 
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('cancel-button')?.addEventListener('click', e => {
         e.preventDefault();
-        remote.getCurrentWindow().close();
+        ipcRenderer.send('close-window', 'SettingsWindow');
     });
 
     document.querySelector('form')?.addEventListener('submit', e => {

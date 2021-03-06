@@ -1,12 +1,12 @@
 {
   "name": "tabs",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
     "email": "alice@gaudon.pro"
   },
-  "homepage": "https://github.com/ArisuOngaku/tabs",
+  "homepage": "https://eternae.ink/ashpie/tabs",
   "license": "GPL-3.0-only",
   "main": "build/main.js",
   "scripts": {
@@ -31,14 +31,13 @@
     "@babel/core": "^7.9.6",
     "@babel/preset-env": "^7.9.6",
     "@fortawesome/fontawesome-free": "^5.13.0",
-    "@types/node": "^12.12.54",
     "@typescript-eslint/eslint-plugin": "^4.3.0",
     "@typescript-eslint/parser": "^4.3.0",
     "babel-loader": "^8.1.0",
-    "concurrently": "^5.2.0",
-    "copy-webpack-plugin": "^7.0.0",
+    "concurrently": "^6.0.0",
+    "copy-webpack-plugin": "^8.0.0",
     "css-loader": "^5.0.0",
-    "electron": "^11.0.0",
+    "electron": "^12.0.0",
     "electron-builder": "^22.4.0",
     "eslint": "^7.10.0",
     "file-loader": "^6.0.0",
@@ -46,7 +45,7 @@
     "imagemin-gifsicle": "^7.0.0",
     "imagemin-mozjpeg": "^9.0.0",
     "imagemin-pngquant": "^9.0.0",
-    "imagemin-svgo": "^8.0.0",
+    "imagemin-svgo": "^9.0.0",
     "img-loader": "^3.0.1",
     "mini-css-extract-plugin": "^1.2.0",
     "node-sass": "^5.0.0",
@@ -65,7 +64,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://update.eternae.ink/arisu/tabs"
+        "url": "https://update.eternae.ink/ashpie/tabs"
       }
     ],
     "linux": {
@@ -89,6 +88,6 @@
       "icon": "resources/images/logo.png",
       "category": "public.app-category.utilities"
     },
-    "electronVersion": "11.2.3"
+    "electronVersion": "12.0.0"
   }
 }

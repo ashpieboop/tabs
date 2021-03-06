@@ -52,7 +52,7 @@ export default class Config {
                 'Welcome',
                 'rocket',
                 false,
-                'https://eternae.ink/arisu/tabs',
+                'https://eternae.ink/ashpie/tabs',
                 false,
             ));
         }
