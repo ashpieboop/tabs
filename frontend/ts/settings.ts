@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus = document.getElementById('update-status');
     updateButton = document.getElementById('download-button');
     updateButton?.addEventListener('click', () => {
-        shell.openExternal(`https://update.eternae.ink/arisu/tabs/${updateInfo.path}`)
+        shell.openExternal(`https://update.eternae.ink/ashpie/tabs/${updateInfo.path}`)
             .catch(console.error);
     });
 

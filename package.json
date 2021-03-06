@@ -64,7 +64,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://update.eternae.ink/arisu/tabs"
+        "url": "https://update.eternae.ink/ashpie/tabs"
       }
     ],
     "linux": {
