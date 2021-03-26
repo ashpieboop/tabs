@@ -88,6 +88,6 @@
       "icon": "resources/images/logo.png",
       "category": "public.app-category.utilities"
     },
-    "electronVersion": "12.0.1"
+    "electronVersion": "12.0.2"
   }
 }
