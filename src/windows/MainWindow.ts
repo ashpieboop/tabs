@@ -1,13 +1,5 @@
 import path from "path";
-import {
-    clipboard,
-    ContextMenuParams,
-    dialog,
-    ipcMain,
-    Menu,
-    MenuItem, session, shell,
-    webContents,
-} from "electron";
+import {clipboard, ContextMenuParams, dialog, ipcMain, Menu, MenuItem, session, shell, webContents,} from "electron";
 import ServiceSettingsWindow from "./ServiceSettingsWindow";
 import SettingsWindow from "./SettingsWindow";
 import Application from "../Application";
@@ -460,7 +452,9 @@ export default class MainWindow extends Window {
     ): void {
         const service = this.config.services[serviceId];
 
-        function getUrlDomain(url: string) {
+        function getUrlDomain(url: string | undefined) {
+            if (!url) return '';
+
             const matches = url.match(/^https?:\/\/((.+?)\/|(.+))/i);
             if (matches !== null) {
                 let domain = matches[1];
