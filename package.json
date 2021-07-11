@@ -70,7 +70,7 @@
     ],
     "linux": {
       "target": "AppImage",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "category": "Utility",
       "executableName": "tabs",
       "desktop": {
@@ -80,13 +80,13 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "publisherName": "Alice Gaudon",
       "verifyUpdateCodeSignature": "false"
     },
     "mac": {
       "target": "default",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "category": "public.app-category.utilities"
     },
     "electronVersion": "13.0.0"
