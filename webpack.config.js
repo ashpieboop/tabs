@@ -1,5 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+const { extendDefaultPlugins } = require("svgo");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const dev = process.env.NODE_ENV === 'development';
@@ -50,19 +52,8 @@ const config = {
                 test: /\.(png|jpe?g|gif|svg)$/i,
                 use: [
                     'file-loader?name=../images/[name].[ext]',
-                    {
-                        loader: 'img-loader',
-                        options: {
-                            enabled: !dev,
-                            plugins: [
-                                require('imagemin-gifsicle')({}),
-                                require('imagemin-mozjpeg')({}),
-                                require('imagemin-pngquant')({}),
-                                require('imagemin-svgo')({}),
-                            ]
-                        }
-                    }
-                ]
+                ],
+                type: 'asset',
             },
             {
                 test: /\.ts$/i,
@@ -90,6 +81,35 @@ const config = {
             patterns: [
                 {from: 'node_modules/@fortawesome/fontawesome-free/svgs', to: '../images/icons'}
             ]
+        }),
+        new ImageMinimizerPlugin({
+            minimizerOptions: {
+                // Lossless optimization with custom option
+                // Feel free to experiment with options for better result for you
+                plugins: [
+                    ["gifsicle", {}],
+                    ["mozjpeg", {}],
+                    ["pngquant", {}],
+                    // Svgo configuration here https://github.com/svg/svgo#configuration
+                    [
+                        "svgo",
+                        {
+                            plugins: extendDefaultPlugins([
+                                {
+                                    name: "removeViewBox",
+                                    active: false,
+                                },
+                                {
+                                    name: "addAttributesToSVGElement",
+                                    params: {
+                                        attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
+                                    },
+                                },
+                            ]),
+                        },
+                    ],
+                ],
+            },
         }),
     ]
 };
