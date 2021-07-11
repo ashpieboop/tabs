@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
@@ -42,15 +42,15 @@
     "electron-builder": "^22.11.5",
     "eslint": "^7.10.0",
     "file-loader": "^6.0.0",
-    "imagemin": "^7.0.1",
+    "image-minimizer-webpack-plugin": "^2.2.0",
     "imagemin-gifsicle": "^7.0.0",
     "imagemin-mozjpeg": "^9.0.0",
-    "imagemin-pngquant": "^9.0.0",
+    "imagemin-pngquant": "^9.0.2",
     "imagemin-svgo": "^9.0.0",
-    "img-loader": "^3.0.2",
-    "mini-css-extract-plugin": "^1.2.0",
+    "mini-css-extract-plugin": "^2.1.0",
     "sass": "^1.32.12",
-    "sass-loader": "^11.0.0",
+    "sass-loader": "^12.1.0",
+    "svgo": "^2.3.1",
     "ts-loader": "^9.1.2",
     "typescript": "^4.0.2",
     "webpack": "^5.2.0",
@@ -70,7 +70,7 @@
     ],
     "linux": {
       "target": "AppImage",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "category": "Utility",
       "executableName": "tabs",
       "desktop": {
@@ -80,13 +80,13 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "publisherName": "Alice Gaudon",
       "verifyUpdateCodeSignature": "false"
     },
     "mac": {
       "target": "default",
-      "icon": "resources/images/logo.png",
+      "icon": "frontend/images/logo.png",
       "category": "public.app-category.utilities"
     },
     "electronVersion": "13.0.0"
