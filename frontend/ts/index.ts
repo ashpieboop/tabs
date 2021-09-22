@@ -1,10 +1,4 @@
-import {
-    DidFailLoadEvent,
-    ipcRenderer,
-    PageFaviconUpdatedEvent,
-    UpdateTargetUrlEvent,
-    WebviewTag,
-} from "electron";
+import {DidFailLoadEvent, ipcRenderer, PageFaviconUpdatedEvent, UpdateTargetUrlEvent,} from "electron";
 import Service from "../../src/Service";
 import {IconProperties, IconSet, SpecialPages} from "../../src/Meta";
 import Config from "../../src/Config";
@@ -680,7 +674,7 @@ ipcRenderer.on('fullscreenchange', (e, fullscreen: boolean) => {
 });
 
 type FrontService = Service & {
-    view?: WebviewTag;
+    view?: Electron.WebviewTag;
     viewReady?: boolean;
     li?: NavigationElement;
 };
