@@ -46,14 +46,17 @@ const config = {
             },
             {
                 test: /\.(woff2?|eot|ttf|otf)$/i,
-                use: 'file-loader?name=../fonts/[name].[ext]',
+                type: 'asset/resource',
+                generator: {
+                    filename: '../fonts/[name][ext]',
+                },
             },
             {
                 test: /\.(png|jpe?g|gif|svg)$/i,
-                use: [
-                    'file-loader?name=../images/[name].[ext]',
-                ],
-                type: 'asset',
+                type: 'asset/resource',
+                generator: {
+                    filename: '../images/[name][ext]',
+                },
             },
             {
                 test: /\.ts$/i,
@@ -63,13 +66,14 @@ const config = {
                         configFile: 'tsconfig.frontend.json',
                     }
                 },
-                exclude: '/node_modules/'
+                exclude: '/node_modules/',
             },
             {
                 test: /\.html$/i,
-                use: [
-                    'file-loader?name=../[name].[ext]',
-                ]
+                type: 'asset/resource',
+                generator: {
+                    filename: '../[name][ext]',
+                },
             }
         ],
     },
