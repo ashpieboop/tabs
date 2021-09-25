@@ -1,4 +1,4 @@
-import {app, Menu, shell, Tray} from "electron";
+import {app, dialog, Menu, shell, Tray} from "electron";
 import Meta from "./Meta";
 import Config from "./Config";
 import Updater from "./Updater";
@@ -52,16 +52,34 @@ export default class Application {
         return this.devMode;
     }
 
+    public async openExternalLink(url: string): Promise<void> {
+        if (url.startsWith('https://')) {
+            console.log('Opening link', url);
+            await shell.openExternal(url);
+        } else {
+            const {response} = await dialog.showMessageBox({
+                message: 'Are you sure you want to open this link?\n' + url,
+                type: 'question',
+                buttons: ['Cancel', 'Open link'],
+            });
+
+            if (response === 1) {
+                console.log('Opening link', url);
+                await shell.openExternal(url);
+            }
+        }
+    }
+
     private setupElectronTweaks() {
         // Open external links in default OS browser
         app.on('web-contents-created', (e, contents) => {
             if (contents.getType() === 'webview') {
                 console.log('Setting external links to open in default OS browser');
-                contents.on('new-window', (e, url) => {
-                    e.preventDefault();
-                    if (url.startsWith('https://')) {
-                        shell.openExternal(url).catch(console.error);
-                    }
+                contents.setWindowOpenHandler(details => {
+                    const url = details.url;
+                    this.openExternalLink(url)
+                        .catch(console.error);
+                    return {action: 'deny'};
                 });
             }
         });

@@ -1,5 +1,5 @@
 import path from "path";
-import {clipboard, ContextMenuParams, dialog, ipcMain, Menu, MenuItem, session, shell, webContents,} from "electron";
+import {clipboard, ContextMenuParams, dialog, ipcMain, Menu, MenuItem, session, webContents,} from "electron";
 import ServiceSettingsWindow from "./ServiceSettingsWindow";
 import SettingsWindow from "./SettingsWindow";
 import Application from "../Application";
@@ -339,10 +339,8 @@ export default class MainWindow extends Window {
                 menu.append(new MenuItem({
                     label: 'Open URL in default browser',
                     click: () => {
-                        if (props.linkURL.startsWith('https://')) {
-                            shell.openExternal(props.linkURL)
-                                .catch(console.error);
-                        }
+                        this.application.openExternalLink(props.linkURL)
+                            .catch(console.error);
                     },
                 }));
             }

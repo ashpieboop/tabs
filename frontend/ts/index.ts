@@ -443,6 +443,7 @@ function loadService(serviceId: number, service: FrontService) {
         view.setAttribute('enableRemoteModule', 'false');
         view.setAttribute('partition', 'persist:service_' + service.partition);
         view.setAttribute('autosize', 'true');
+        view.setAttribute('allowpopups', 'true');
         if (specialPages) view.setAttribute('src', specialPages.empty);
 
         // Error handling
