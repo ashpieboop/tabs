@@ -1,7 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
-const { extendDefaultPlugins } = require("svgo");
+const {extendDefaultPlugins} = require("svgo");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const dev = process.env.NODE_ENV === 'development';
@@ -87,48 +87,53 @@ const config = {
             ]
         }),
         new ImageMinimizerPlugin({
-            minimizerOptions: {
-                // Lossless optimization with custom option
-                // Feel free to experiment with options for better result for you
-                plugins: [
-                    ["gifsicle", {}],
-                    ["mozjpeg", {}],
-                    ["pngquant", {}],
-                    // Svgo configuration here https://github.com/svg/svgo#configuration
-                    [
-                        "svgo",
-                        {
-                            plugins: extendDefaultPlugins([
-                                {
-                                    name: "removeViewBox",
-                                    active: false,
-                                },
-                                {
-                                    name: "addAttributesToSVGElement",
-                                    params: {
-                                        attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
+            minimizer: {
+                implementation: ImageMinimizerPlugin.imageminMinify,
+                options: {
+                    // Lossless optimization with custom option
+                    // Feel free to experiment with options for better result for you
+                    plugins: [
+                        ["gifsicle", {}],
+                        ["mozjpeg", {}],
+                        ["pngquant", {}],
+                        // Svgo configuration here https://github.com/svg/svgo#configuration
+                        [
+                            "svgo",
+                            {
+                                plugins: extendDefaultPlugins([
+                                    {
+                                        name: "removeViewBox",
+                                        active: false,
                                     },
-                                },
-                            ]),
-                            //TODO for imagemin-svgo ^10.0.0 when https://github.com/webpack-contrib/image-minimizer-webpack-plugin/issues/237 is fixed
-                            // plugins: {
-                            //     name: 'preset-default',
-                            //     params: {
-                            //         overrides: {
-                            //             removeViewBox: {
-                            //                 active: false,
-                            //             },
-                            //             addAttributesToSVGElement: {
-                            //                 params: {
-                            //                     attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
+                                    {
+                                        name: "addAttributesToSVGElement",
+                                        params: {
+                                            attributes: [{ xmlns: "http://www.w3.org/2000/svg" }],
+                                        },
+                                    },
+                                ]),
+                            },
+                            // todo: still not fixed
+                            // {
+                            //     plugins: {
+                            //         name: 'preset-default',
+                            //         params: {
+                            //             overrides: {
+                            //                 removeViewBox: {
+                            //                     active: false,
+                            //                 },
+                            //                 addAttributesToSVGElement: {
+                            //                     params: {
+                            //                         attributes: [{xmlns: "http://www.w3.org/2000/svg"}],
+                            //                     },
                             //                 },
                             //             },
                             //         },
                             //     },
                             // },
-                        },
+                        ],
                     ],
-                ],
+                },
             },
         }),
     ]

@@ -1,4 +1,4 @@
-import {DidFailLoadEvent, ipcRenderer, PageFaviconUpdatedEvent, UpdateTargetUrlEvent,} from "electron";
+import {DidFailLoadEvent, ipcRenderer, PageFaviconUpdatedEvent, UpdateTargetUrlEvent} from "electron";
 import Service from "../../src/Service";
 import {IconProperties, IconSet, SpecialPages} from "../../src/Meta";
 import Config from "../../src/Config";

@@ -1,5 +1,5 @@
 import path from "path";
-import {clipboard, ContextMenuParams, dialog, ipcMain, Menu, MenuItem, session, webContents,} from "electron";
+import {clipboard, ContextMenuParams, dialog, ipcMain, Menu, MenuItem, session, webContents} from "electron";
 import ServiceSettingsWindow from "./ServiceSettingsWindow";
 import SettingsWindow from "./SettingsWindow";
 import Application from "../Application";
