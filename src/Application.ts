@@ -76,6 +76,8 @@ export default class Application {
             if (contents.getType() === 'webview') {
                 console.log('Setting external links to open in default OS browser');
                 contents.setWindowOpenHandler(details => {
+                    if (details.url.startsWith(details.referrer.url)) return {action: 'allow'};
+
                     const url = details.url;
                     this.openExternalLink(url)
                         .catch(console.error);
