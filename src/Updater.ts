@@ -29,10 +29,11 @@ export default class Updater {
 
     public async checkForUpdates(force: boolean = false): Promise<UpdateInfo | void> {
         if (force || !this.updateInfo) {
-            this.updateInfo = (await autoUpdater.checkForUpdates()).updateInfo;
+            const updateCheckResult = await autoUpdater.checkForUpdates();
+            this.updateInfo = updateCheckResult?.updateInfo;
         }
 
-        if (this.updateInfo.version !== this.getCurrentVersion().raw) {
+        if (this.updateInfo && this.updateInfo.version !== this.getCurrentVersion().raw) {
             return this.updateInfo;
         }
     }
