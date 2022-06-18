@@ -1,5 +1,5 @@
 provider: generic
-url: "https://update.eternae.ink/ashpie/tabs"
+url: "https://u.git.kma.sh/ashpie/tabs"
 updaterCacheDirName: tabs-updater
 publisherName:
   - Alice Gaudon
