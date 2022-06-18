@@ -1,6 +1,6 @@
 {
   "name": "tabs",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Persistent and separate browser tabs in one window.",
   "author": {
     "name": "Alice Gaudon",
