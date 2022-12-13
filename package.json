@@ -31,14 +31,14 @@
     "@babel/core": "^7.9.6",
     "@babel/preset-env": "^7.9.6",
     "@fortawesome/fontawesome-free": "^6.1.0",
-    "@types/node": "^16.11.41",
+    "@types/node": "^16.11.68",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
     "babel-loader": "^8.1.0",
     "concurrently": "^7.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.3.0",
-    "electron": "^19.0.4",
+    "electron": "^22.0.0",
     "electron-builder": "^23.0.3",
     "eslint": "^8.11.0",
     "image-minimizer-webpack-plugin": "^3.2.3",
@@ -89,6 +89,6 @@
       "icon": "frontend/images/logo.png",
       "category": "public.app-category.utilities"
     },
-    "electronVersion": "19.0.4"
+    "electronVersion": "22.0.0"
   }
 }
